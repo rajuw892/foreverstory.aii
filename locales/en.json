@@ -1,0 +1,182 @@
+{
+  "common": {
+    "appName": "ForeverStory.ai",
+    "tagline": "Turn Your Love Story Into an Animated Movie",
+    "getStarted": "Create Your Story Free",
+    "learnMore": "Learn More",
+    "back": "Back",
+    "continue": "Continue",
+    "submit": "Submit",
+    "download": "Download",
+    "share": "Share",
+    "loading": "Loading..."
+  },
+  "landing": {
+    "hero": {
+      "title": "Turn Your Love Story Into an Animated Movie",
+      "subtitle": "Answer 8 simple questions, upload your photos, and watch AI transform your relationship into a beautiful animated video in just 5 minutes.",
+      "cta": "Create Your Story Free",
+      "ctaSubtext": "Free preview with watermark • $9.99 for HD"
+    },
+    "features": {
+      "fast": "Ready in 5 minutes",
+      "automated": "100% Automated",
+      "multilingual": "12 Languages"
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "subtitle": "Three simple steps to your forever story",
+      "step1": {
+        "title": "Share Your Story",
+        "description": "Answer 8 simple questions about your love story"
+      },
+      "step2": {
+        "title": "AI Magic",
+        "description": "Our AI creates a beautiful animated video in minutes"
+      },
+      "step3": {
+        "title": "Watch & Share",
+        "description": "Download your video and share with the world"
+      }
+    },
+    "testimonials": {
+      "title": "Loved by Couples",
+      "subtitle": "Join thousands who've captured their love story"
+    },
+    "pricing": {
+      "title": "Simple Pricing",
+      "price": "$9.99",
+      "perVideo": "/ video",
+      "inrPrice": "or ₹799 in India",
+      "features": [
+        "Free preview with small watermark",
+        "HD + 4K download without watermark",
+        "90-second animated video",
+        "Choose from 5 stunning styles",
+        "12 language support",
+        "Lifetime access to your video"
+      ]
+    },
+    "cta": {
+      "title": "Your Love Story Deserves to be Animated",
+      "subtitle": "Join over 50,000 couples who've transformed their love stories into beautiful animated memories."
+    }
+  },
+  "form": {
+    "step1": {
+      "title": "Your Names",
+      "subtitle": "What should we call you two?",
+      "placeholder": "e.g., \"Sarah & John\" or \"The Johnsons\""
+    },
+    "step2": {
+      "title": "How You Met",
+      "subtitle": "Tell us your magical beginning",
+      "placeholder": "We met at a coffee shop when..."
+    },
+    "step3": {
+      "title": "First Date",
+      "subtitle": "The funniest or cutest moment",
+      "placeholder": "Our first date was hilarious because..."
+    },
+    "step4": {
+      "title": "I Love You",
+      "subtitle": "Who said it first and how?",
+      "placeholder": "He/She said it first when..."
+    },
+    "step5": {
+      "title": "Inside Joke",
+      "subtitle": "Your favorite ritual or joke",
+      "placeholder": "Every morning we..."
+    },
+    "step6": {
+      "title": "Adventure",
+      "subtitle": "Your biggest adventure together",
+      "placeholder": "The craziest thing we did was..."
+    },
+    "step7": {
+      "title": "Future Dream",
+      "subtitle": "One dream for your future",
+      "placeholder": "Someday we want to..."
+    },
+    "photos": {
+      "title": "Upload Your Photos",
+      "subtitle": "Add 2-8 photos of you and your partner",
+      "dropzone": "Drag & drop photos or click to browse",
+      "format": "JPG, PNG or WebP (max 10MB each)",
+      "count": "{count}/8 photos uploaded",
+      "minimum": "(minimum 2 required)"
+    },
+    "style": {
+      "title": "Choose Your Style",
+      "subtitle": "Pick the animation style for your love story"
+    },
+    "generate": "Generate My Story"
+  },
+  "processing": {
+    "title": "Creating Your Story",
+    "steps": {
+      "queued": "Preparing...",
+      "processing_script": "Writing your story",
+      "generating_characters": "Creating characters",
+      "creating_scenes": "Drawing scenes",
+      "generating_video": "Animating scenes",
+      "adding_voice": "Adding narration",
+      "compiling": "Final touches",
+      "completed": "Complete!"
+    },
+    "estimatedTime": "Estimated time remaining",
+    "tip": "Tip: Your video will be ready soon! Feel free to keep this tab open or come back later - we'll save your progress."
+  },
+  "result": {
+    "success": "Your animated video is ready!",
+    "upgrade": "Get HD Without Watermark - $9.99",
+    "downloadFree": "Download Free (with watermark)",
+    "downloadHD": "Download HD Video",
+    "shareTitle": "Share Your Story",
+    "createAnother": "Create Another Story"
+  },
+  "checkout": {
+    "title": "Unlock Your Forever Story",
+    "subtitle": "Remove the watermark and get HD quality",
+    "oneTime": "one-time",
+    "payNow": "Pay {price} Now",
+    "secure": "Secure payment powered by Stripe",
+    "guarantee": "Not satisfied? Contact us within 24 hours for a full refund.",
+    "features": [
+      "HD + 4K video quality",
+      "No watermark",
+      "Lifetime access",
+      "Download unlimited times",
+      "Share anywhere"
+    ]
+  },
+  "download": {
+    "thankYou": "Thank You for Your Purchase!",
+    "ready": "Your premium video is ready for download",
+    "downloadHD": "Download HD (1080p)",
+    "download4K": "Download 4K (2160p)",
+    "share": "Share your love story with the world"
+  },
+  "styles": {
+    "ghibli": {
+      "name": "Studio Ghibli",
+      "description": "Soft, dreamy watercolor style with magical landscapes"
+    },
+    "anime": {
+      "name": "Classic Anime",
+      "description": "Beautiful Makoto Shinkai / Your Name style"
+    },
+    "pixar": {
+      "name": "Pixar",
+      "description": "3D animated movie style with expressive characters"
+    },
+    "disney": {
+      "name": "Disney Princess",
+      "description": "Magical fairytale princess animation style"
+    },
+    "arcane": {
+      "name": "Arcane",
+      "description": "Stylized League of Legends cinematic look"
+    }
+  }
+}

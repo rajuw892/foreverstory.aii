@@ -1,0 +1,139 @@
+{
+  "common": {
+    "appName": "ForeverStory.ai",
+    "tagline": "Convierte Tu Historia de Amor en una Película Animada",
+    "getStarted": "Crea Tu Historia Gratis",
+    "learnMore": "Saber Más",
+    "back": "Atrás",
+    "continue": "Continuar",
+    "submit": "Enviar",
+    "download": "Descargar",
+    "share": "Compartir",
+    "loading": "Cargando..."
+  },
+  "landing": {
+    "hero": {
+      "title": "Convierte Tu Historia de Amor en una Película Animada",
+      "subtitle": "Responde 8 preguntas simples, sube tus fotos, y mira cómo la IA transforma tu relación en un hermoso video animado en solo 5 minutos.",
+      "cta": "Crea Tu Historia Gratis",
+      "ctaSubtext": "Vista previa gratis con marca de agua • $9.99 para HD"
+    },
+    "features": {
+      "fast": "Listo en 5 minutos",
+      "automated": "100% Automatizado",
+      "multilingual": "12 Idiomas"
+    },
+    "howItWorks": {
+      "title": "Cómo Funciona",
+      "subtitle": "Tres simples pasos para tu historia eterna",
+      "step1": {
+        "title": "Comparte Tu Historia",
+        "description": "Responde 8 preguntas simples sobre tu historia de amor"
+      },
+      "step2": {
+        "title": "Magia de IA",
+        "description": "Nuestra IA crea un hermoso video animado en minutos"
+      },
+      "step3": {
+        "title": "Mira y Comparte",
+        "description": "Descarga tu video y compártelo con el mundo"
+      }
+    },
+    "pricing": {
+      "title": "Precios Simples",
+      "price": "$9.99",
+      "perVideo": "/ video",
+      "features": [
+        "Vista previa gratis con pequeña marca de agua",
+        "Descarga HD + 4K sin marca de agua",
+        "Video animado de 90 segundos",
+        "Elige entre 5 estilos impresionantes",
+        "Soporte para 12 idiomas",
+        "Acceso de por vida a tu video"
+      ]
+    }
+  },
+  "form": {
+    "step1": {
+      "title": "Sus Nombres",
+      "subtitle": "¿Cómo deberíamos llamarlos?",
+      "placeholder": "ej., \"María y Juan\" o \"Los García\""
+    },
+    "step2": {
+      "title": "Cómo Se Conocieron",
+      "subtitle": "Cuéntanos tu comienzo mágico",
+      "placeholder": "Nos conocimos en una cafetería cuando..."
+    },
+    "step3": {
+      "title": "Primera Cita",
+      "subtitle": "El momento más divertido o tierno",
+      "placeholder": "Nuestra primera cita fue divertida porque..."
+    },
+    "step4": {
+      "title": "Te Amo",
+      "subtitle": "¿Quién lo dijo primero y cómo?",
+      "placeholder": "Él/Ella lo dijo primero cuando..."
+    },
+    "step5": {
+      "title": "Broma Interna",
+      "subtitle": "Tu ritual o broma favorita",
+      "placeholder": "Cada mañana nosotros..."
+    },
+    "step6": {
+      "title": "Aventura",
+      "subtitle": "Su mayor aventura juntos",
+      "placeholder": "Lo más loco que hicimos fue..."
+    },
+    "step7": {
+      "title": "Sueño Futuro",
+      "subtitle": "Un sueño para su futuro",
+      "placeholder": "Algún día queremos..."
+    },
+    "photos": {
+      "title": "Sube Tus Fotos",
+      "subtitle": "Agrega 2-8 fotos de ustedes dos",
+      "dropzone": "Arrastra y suelta fotos o haz clic para buscar",
+      "format": "JPG, PNG o WebP (máx 10MB cada una)"
+    },
+    "style": {
+      "title": "Elige Tu Estilo",
+      "subtitle": "Escoge el estilo de animación para tu historia de amor"
+    },
+    "generate": "Generar Mi Historia"
+  },
+  "processing": {
+    "title": "Creando Tu Historia",
+    "steps": {
+      "queued": "Preparando...",
+      "processing_script": "Escribiendo tu historia",
+      "generating_characters": "Creando personajes",
+      "creating_scenes": "Dibujando escenas",
+      "generating_video": "Animando escenas",
+      "adding_voice": "Agregando narración",
+      "compiling": "Toques finales",
+      "completed": "¡Completo!"
+    },
+    "estimatedTime": "Tiempo restante estimado"
+  },
+  "result": {
+    "success": "¡Tu video animado está listo!",
+    "upgrade": "Obtén HD Sin Marca de Agua - $9.99",
+    "downloadFree": "Descargar Gratis (con marca de agua)",
+    "downloadHD": "Descargar Video HD",
+    "shareTitle": "Comparte Tu Historia",
+    "createAnother": "Crear Otra Historia"
+  },
+  "checkout": {
+    "title": "Desbloquea Tu Forever Story",
+    "subtitle": "Elimina la marca de agua y obtén calidad HD",
+    "oneTime": "pago único",
+    "payNow": "Pagar $9.99 Ahora",
+    "secure": "Pago seguro por Stripe"
+  },
+  "download": {
+    "thankYou": "¡Gracias por tu compra!",
+    "ready": "Tu video premium está listo para descargar",
+    "downloadHD": "Descargar HD (1080p)",
+    "download4K": "Descargar 4K (2160p)"
+  }
+}
