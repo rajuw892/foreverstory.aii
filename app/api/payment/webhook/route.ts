@@ -45,15 +45,28 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        const { jobId, storyId } = session.metadata || {};
+        const { jobId, storyId, tier } = session.metadata || {};
 
         if (jobId || storyId) {
           const targetId = storyId || jobId;
 
+          // Get payment record to know the tier and amount
+          const { data: payment } = await supabase
+            .from('payments')
+            .select('*')
+            .eq('stripe_session_id', session.id)
+            .single();
+
           // Update story as paid
           await supabase
             .from('stories')
-            .update({ paid: true })
+            .update({
+              paid: true,
+              payment_tier: tier || payment?.tier || 'basic',
+              payment_amount: session.amount_total || payment?.amount,
+              payment_currency: session.currency || payment?.currency,
+              updated_at: new Date().toISOString(),
+            })
             .eq('id', targetId);
 
           // Update payment record
@@ -62,10 +75,23 @@ export async function POST(request: NextRequest) {
             .update({
               status: 'completed',
               stripe_payment_id: session.payment_intent as string,
+              updated_at: new Date().toISOString(),
             })
             .eq('stripe_session_id', session.id);
 
-          console.log(`Payment completed for story: ${targetId}`);
+          console.log(`[Stripe Webhook] Payment completed for story: ${targetId}, tier: ${tier || 'basic'}`);
+
+          // If Deluxe tier, trigger animation generation
+          if (tier === 'deluxe') {
+            console.log('[Stripe Webhook] Triggering Deluxe generation');
+
+            // Trigger deluxe generation in background
+            fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/generate-deluxe`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ jobId: targetId }),
+            }).catch(err => console.error('[Stripe Webhook] Deluxe trigger failed:', err));
+          }
         }
         break;
       }

@@ -64,6 +64,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#FFFBF5] text-gray-900 transition-colors duration-700 dark:bg-[#0F172A] dark:text-[#F1F5F9]`}
+        suppressHydrationWarning
       >
         <ThemeProvider>
           <div className="fixed right-4 top-4 z-50 hidden md:flex">

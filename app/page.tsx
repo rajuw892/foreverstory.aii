@@ -19,7 +19,6 @@ import {
   Palette,
   Film,
   Shield,
-  Diamond,
 } from "lucide-react";
 
 const DEMO_VIDEOS = [
@@ -80,7 +79,6 @@ const STYLES = [
   { name: "Disney Princess", emoji: "👑", desc: "Fairytale sparkle & wonder", color: "from-purple-400 to-violet-500" },
   { name: "Arcane", emoji: "🌌", desc: "Edgy, artful storytelling", color: "from-amber-400 to-orange-500" },
 ];
-
 const FEATURES = [
   "Free preview with a tiny watermark",
   "HD + 4K downloads without watermark",
@@ -105,8 +103,8 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative px-4 pt-24 pb-16 md:pt-28">
-        <div className="max-w-6xl mx-auto grid items-center gap-12 md:grid-cols-2">
-          <div className="space-y-8 relative z-10">
+        <div className="max-w-5xl mx-auto flex flex-col gap-12 items-center text-center">
+          <div className="space-y-8 relative z-10 max-w-4xl">
             <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/70 dark:bg-[#1E293B]/70 border border-white/50 dark:border-white/10 shadow-lg shadow-purple-500/10">
               <Sparkles className="w-4 h-4 text-pink-500" />
               <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Love that lives forever</span>
@@ -129,13 +127,13 @@ export default function LandingPage() {
                   />
                 </span>
               </motion.h1>
-              <p className="mt-5 text-lg md:text-xl text-gray-700 dark:text-gray-300 max-w-xl leading-relaxed">
+              <p className="mt-5 text-lg md:text-xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
                 Create a luxurious, romantic animated film of your love in 5 minutes. Choose iconic art styles, add
                 narration in 12 languages, and keep the magic forever.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link href="/create">
                 <Button size="xl" variant="glow" className="group text-lg shadow-purple-500/25">
                   <Sparkles className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
@@ -150,7 +148,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 justify-center">
               {[
                 { icon: Clock, text: "Ready in 5 min" },
                 { icon: Zap, text: "Fully automated" },
@@ -159,64 +157,12 @@ export default function LandingPage() {
               ].map((badge, i) => (
                 <GlassCard
                   key={i}
-                  className="flex items-center gap-2 px-3 py-2 bg-white/80 dark:bg-[#1E293B]/80 border-white/60 dark:border-purple-500/15 shadow-sm"
+                  className="flex items-center justify-center gap-2 px-3 py-2 bg-white/80 dark:bg-[#1E293B]/80 border-white/60 dark:border-purple-500/15 shadow-sm text-center"
                 >
                   <badge.icon className="w-4 h-4 text-purple-500 dark:text-[#A78BFA]" />
                   <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">{badge.text}</span>
                 </GlassCard>
               ))}
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 -left-6 -top-6 bg-gradient-to-br from-[#A78BFA]/25 via-[#F472B6]/25 to-[#22D3EE]/25 blur-3xl" />
-            <div className="relative rounded-[32px] p-6 bg-white/80 dark:bg-[#0F172A]/80 border border-white/40 dark:border-purple-500/20 shadow-2xl shadow-purple-500/15 dark:shadow-purple-500/25">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center">
-                    <Heart className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-300">Premium render</p>
-                    <p className="font-display font-semibold">ForeverStory.ai</p>
-                  </div>
-                </div>
-                <div className="flex gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_0_6px_rgba(16,185,129,0.2)]" />
-                  <span className="w-2 h-2 rounded-full bg-amber-300 shadow-[0_0_0_6px_rgba(252,211,77,0.2)]" />
-                  <span className="w-2 h-2 rounded-full bg-rose-400 shadow-[0_0_0_6px_rgba(251,113,133,0.2)]" />
-                </div>
-              </div>
-
-              <div className="iphone-frame">
-                <div className="video-container bg-gradient-to-br from-purple-200 to-pink-200 dark:from-[#111827] dark:to-[#1E293B] relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#A78BFA]/70 via-transparent to-[#F472B6]/60 mix-blend-screen dark:mix-blend-lighten" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
-                    <motion.div
-                      className="w-20 h-20 rounded-full bg-white/90 dark:bg-[#1E293B] shadow-xl flex items-center justify-center mb-4"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <Play className="w-8 h-8 text-gray-800 dark:text-white ml-1" />
-                    </motion.div>
-                    <h3 className="font-display text-xl font-semibold text-white drop-shadow">Preview your film</h3>
-                    <p className="text-white/80 text-sm">Romantic animations with glowing gradients</p>
-                  </div>
-                </div>
-              </div>
-
-              <GlassCard className="mt-4 p-4 bg-white/80 dark:bg-[#111827]/80 border border-white/60 dark:border-purple-500/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-300 to-pink-400 flex items-center justify-center text-white shadow-neon">
-                    <Diamond className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-800 dark:text-white">Promise of romance</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-300">
-                      Handcrafted glow, soft gradients, and gold accents for a premium feel.
-                    </p>
-                  </div>
-                </div>
-              </GlassCard>
             </div>
           </div>
         </div>
@@ -317,16 +263,16 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.05 }}
               >
-                <GlassCard className="overflow-hidden group bg-white/80 dark:bg-[#0F172A]/80 border-white/60 dark:border-purple-500/20">
+                <GlassCard className="overflow-hidden group bg-white/80 dark:bg-[#0F172A]/80 border-white/60 dark:border-purple-500/20 h-full flex flex-col">
                   <div className={`h-36 bg-gradient-to-br ${style.color} flex items-center justify-center relative`}>
                     <span className="text-5xl transform group-hover:scale-110 transition-transform duration-500">
                       {style.emoji}
                     </span>
                     <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300" />
                   </div>
-                  <div className="p-4 space-y-1">
+                  <div className="p-4 space-y-1 flex-1 flex flex-col">
                     <h3 className="font-display font-semibold text-lg">{style.name}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-300">{style.desc}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-300 flex-1">{style.desc}</p>
                   </div>
                 </GlassCard>
               </motion.div>
@@ -439,7 +385,7 @@ export default function LandingPage() {
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             className="inline-block mb-8"
           >
-            <Heart className="w-16 h-16 text-pink-500 fill-pink-500 pulse-glow rounded-full" />
+            <Heart className="w-16 h-16 text-pink-500 fill-pink-500" />
           </motion.div>
 
           <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6 dark:text-shadow-glow">

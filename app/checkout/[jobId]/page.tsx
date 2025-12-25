@@ -77,7 +77,7 @@ export default function CheckoutPage() {
         {/* Back Link */}
         <Link
           href={`/result/${jobId}`}
-          className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 rounded-full glass text-gray-600 hover:text-purple-600 transition-colors group"
+          className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 rounded-full glass text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           <span className="text-sm font-medium">Back to video</span>
@@ -110,10 +110,10 @@ export default function CheckoutPage() {
                 <Sparkles className="w-4 h-4" />
                 <span>Premium Upgrade</span>
               </motion.div>
-              <h1 className="font-display text-2xl md:text-3xl font-bold text-gray-800 mb-3">
+              <h1 className="font-display text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-3">
                 Unlock Your <span className="gradient-text">Forever Story</span>
               </h1>
-              <p className="text-gray-500">
+              <p className="text-gray-500 dark:text-gray-400">
                 Remove the watermark and get crystal-clear HD quality
               </p>
             </div>
@@ -143,7 +143,7 @@ export default function CheckoutPage() {
                     className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
                       currency === curr.id
                         ? "gradient-primary text-white shadow-lg shadow-purple-500/30"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                     }`}
                   >
                     {curr.label}
@@ -160,10 +160,10 @@ export default function CheckoutPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="flex items-center gap-4 p-3 rounded-xl bg-white/50 hover:bg-white/80 transition-colors"
+                  className="flex items-center gap-4 p-3 rounded-xl bg-white/50 hover:bg-white/80 dark:bg-gray-800/50 dark:hover:bg-gray-800/80 transition-colors"
                 >
                   <span className="text-xl">{feature.icon}</span>
-                  <span className="text-gray-700 font-medium">{feature.text}</span>
+                  <span className="text-gray-700 dark:text-gray-200 font-medium">{feature.text}</span>
                   <Check className="w-5 h-5 text-green-500 ml-auto" />
                 </motion.li>
               ))}
@@ -207,9 +207,9 @@ export default function CheckoutPage() {
             </div>
 
             {/* Stripe Badge */}
-            <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-gray-100">
+            <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
               <span className="text-xs text-gray-400">Powered by</span>
-              <span className="font-semibold text-gray-600">Stripe</span>
+              <span className="font-semibold text-gray-600 dark:text-gray-300">Stripe</span>
             </div>
           </GlassCard>
         </motion.div>
@@ -219,7 +219,7 @@ export default function CheckoutPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-8 text-center text-gray-500 text-sm max-w-sm"
+          className="mt-8 text-center text-gray-500 dark:text-gray-400 text-sm max-w-sm"
         >
           Not satisfied? Contact us within 24 hours for a full refund. No questions asked.
         </motion.p>

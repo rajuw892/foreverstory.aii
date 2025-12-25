@@ -8,7 +8,14 @@ interface FloatingSparklesProps {
 }
 
 export function FloatingSparkles({ count = 30 }: FloatingSparklesProps) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const sparkles = useMemo(() => {
+    if (!isMounted) return [];
     return Array.from({ length: count }).map((_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -23,7 +30,11 @@ export function FloatingSparkles({ count = 30 }: FloatingSparklesProps) {
           ? "rgba(236, 72, 153, 0.5)" // pink
           : "rgba(251, 191, 36, 0.5)", // gold
     }));
-  }, [count]);
+  }, [count, isMounted]);
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -82,6 +93,7 @@ export function FloatingHearts({ count = 15 }: FloatingSparklesProps) {
   }, []);
 
   const hearts = useMemo(() => {
+    if (!isMounted) return [];
     return Array.from({ length: count }).map((_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -91,9 +103,8 @@ export function FloatingHearts({ count = 15 }: FloatingSparklesProps) {
       color: Math.random() > 0.5 ? "#EC4899" : "#8B5CF6",
       opacity: Math.random() * 0.3 + 0.1,
     }));
-  }, [count]);
+  }, [count, isMounted]);
 
-  // Don't render during SSR to avoid window reference
   if (!isMounted) {
     return null;
   }
@@ -111,7 +122,7 @@ export function FloatingHearts({ count = 15 }: FloatingSparklesProps) {
           }}
           initial={{ y: 100, opacity: 0 }}
           animate={{
-            y: [100, -1200], // Use a fixed large value instead of window.innerHeight
+            y: [100, -1200],
             opacity: [0, heart.opacity, heart.opacity, 0],
             x: [0, Math.sin(heart.id) * 50, 0],
             rotate: [0, 360],

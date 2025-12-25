@@ -100,7 +100,9 @@ async function processStory(payload: JobPayload): Promise<void> {
     // Step 2: Stylize Photos
     await updateStoryStatus(storyId, 'generating_characters', 25, 'Creating your characters...');
 
-    const stylizedPhotos = await stylizeAllPhotos(photoUrls, storyData.artStyle);
+    // Use cinematicStyleId if available, fallback to legacy artStyle
+    const styleId = storyData.cinematicStyleId || storyData.artStyle || 'ghibli_cherry_blossoms';
+    const stylizedPhotos = await stylizeAllPhotos(photoUrls, styleId);
     console.log(`Stylized ${stylizedPhotos.length} photos`);
 
     await supabase
@@ -113,7 +115,7 @@ async function processStory(payload: JobPayload): Promise<void> {
 
     const sceneImages = await generateAllSceneImages(
       script.scenes,
-      storyData.artStyle,
+      styleId,
       `romantic couple, ${storyData.coupleNames}`
     );
     console.log(`Generated ${sceneImages.length} scene images`);
@@ -164,6 +166,7 @@ async function processStory(payload: JobPayload): Promise<void> {
     await updateStoryStatus(storyId, 'completed', 100, 'Your story is ready!', {
       video_url: videoUrl,
       watermarked_video_url: watermarkedVideoUrl,
+      style_id: styleId,
     });
 
     console.log(`Story ${storyId} completed successfully!`);

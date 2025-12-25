@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { StoryFormData, GeneratedScript, Scene, SupportedLanguage } from '@/types';
-import { STYLE_CONFIGS } from '@/lib/constants';
+import { STYLE_CONFIGS, CINEMATIC_STYLES } from '@/lib/constants';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -21,22 +21,75 @@ const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
   de: 'German',
 };
 
+// Check if a field was skipped (contains placeholder token)
+function isSkipped(value: string): boolean {
+  return !value || value.startsWith('[GENERATE_') || value === '[SKIPPED]' || value.trim() === '';
+}
+
+// Format field for prompt - either use user's answer or indicate AI should create it
+function formatField(value: string, fieldName: string): string {
+  if (isSkipped(value)) {
+    return `[CREATE A BEAUTIFUL, ROMANTIC ${fieldName.toUpperCase()} - BE CREATIVE AND HEARTWARMING]`;
+  }
+  return value;
+}
+
 export async function generateScript(
   storyData: StoryFormData
 ): Promise<GeneratedScript> {
-  const styleName = STYLE_CONFIGS[storyData.artStyle]?.name || 'Studio Ghibli';
+  // Get style name from cinematicStyleId first, fallback to legacy artStyle
+  const cinematicStyle = storyData.cinematicStyleId ? CINEMATIC_STYLES[storyData.cinematicStyleId] : null;
+  const styleName = cinematicStyle?.name || STYLE_CONFIGS[storyData.artStyle]?.name || 'Studio Ghibli';
   const languageName = LANGUAGE_NAMES[storyData.language] || 'English';
+
+  // Check how many fields were skipped
+  const skippedCount = [
+    storyData.coupleNames,
+    storyData.howMet,
+    storyData.firstDate,
+    storyData.iLoveYou,
+    storyData.insideJoke,
+    storyData.adventure,
+    storyData.futureDream,
+  ].filter(isSkipped).length;
+
+  const isFullyGenerated = skippedCount === 7;
+  const hasPartialInfo = skippedCount > 0 && skippedCount < 7;
+
+  // Build context for AI
+  const coupleNames = formatField(storyData.coupleNames, 'couple names');
+  const howMet = formatField(storyData.howMet, 'how they met story');
+  const firstDate = formatField(storyData.firstDate, 'first date memory');
+  const iLoveYou = formatField(storyData.iLoveYou, 'love confession moment');
+  const insideJoke = formatField(storyData.insideJoke, 'inside joke or special ritual');
+  const adventure = formatField(storyData.adventure, 'adventure together');
+  const futureDream = formatField(storyData.futureDream, 'future dream');
+
+  // Special instructions based on how much was skipped
+  let specialInstructions = '';
+  if (isFullyGenerated) {
+    specialInstructions = `
+SPECIAL NOTE: The user has chosen to let you create their entire love story from scratch!
+Create a COMPLETE, ORIGINAL, and deeply romantic love story. Invent beautiful names,
+a magical meeting, tender moments, and a heartwarming journey. Make it feel real and emotional.
+This should be a universal love story that anyone would find touching.`;
+  } else if (hasPartialInfo) {
+    specialInstructions = `
+SPECIAL NOTE: Some details are marked with [CREATE...]. For these, invent beautiful,
+romantic content that fits naturally with the provided details. Make the story cohesive.`;
+  }
 
   const prompt = `You are a romantic storyteller and screenwriter. Your task is to transform a couple's love story into a beautiful 90-second animated movie script.
 
 COUPLE'S STORY:
-- Names: ${storyData.coupleNames}
-- How they met: ${storyData.howMet}
-- First date memory: ${storyData.firstDate}
-- Who said "I love you" first: ${storyData.iLoveYou}
-- Inside joke/ritual: ${storyData.insideJoke}
-- Biggest adventure: ${storyData.adventure}
-- Future dream: ${storyData.futureDream}
+- Names: ${coupleNames}
+- How they met: ${howMet}
+- First date memory: ${firstDate}
+- Who said "I love you" first: ${iLoveYou}
+- Inside joke/ritual: ${insideJoke}
+- Biggest adventure: ${adventure}
+- Future dream: ${futureDream}
+${specialInstructions}
 
 STYLE: ${styleName} animation style
 LANGUAGE: Write all narration in ${languageName}

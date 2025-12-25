@@ -1,0 +1,71 @@
+{
+  "functions": {
+    "app/api/generate/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "app/api/generate-video/route.ts": {
+      "maxDuration": 300,
+      "memory": 3008
+    },
+    "app/api/render-video/route.ts": {
+      "maxDuration": 300,
+      "memory": 3008
+    },
+    "app/api/upload/route.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "app/api/status/route.ts": {
+      "maxDuration": 10,
+      "memory": 512
+    },
+    "app/api/cancel/route.ts": {
+      "maxDuration": 10,
+      "memory": 512
+    },
+    "app/api/download/*/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "app/api/payment/*/route.ts": {
+      "maxDuration": 30,
+      "memory": 512
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/cleanup",
+      "schedule": "0 0 * * *"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    },
+    {
+      "source": "/video/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/audio/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}

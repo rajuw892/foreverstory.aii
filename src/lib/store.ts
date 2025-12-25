@@ -1,6 +1,10 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { StoryFormData, ArtStyle, SupportedLanguage } from '@/types';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { StoryFormData, ArtStyle, SupportedLanguage, VoiceId, MusicTrackId, VideoThemeId, CinematicStyleId } from '@/types';
+
+// Total steps: 7 questions + 1 photos + 1 voice + 1 music + 1 cinematic style = 11 steps
+// (Removed legacy art style step, now using 24 cinematic styles)
+const TOTAL_STEPS = 11;
 
 interface StoryFormState {
   currentStep: number;
@@ -21,7 +25,11 @@ const initialFormData: StoryFormData = {
   adventure: '',
   futureDream: '',
   photos: [],
-  artStyle: 'ghibli',
+  voiceId: 'rachel',
+  musicTrackId: 'romantic_piano',
+  videoThemeId: 'sunset_romance', // Legacy - kept for compatibility
+  artStyle: 'ghibli', // Legacy - kept for compatibility
+  cinematicStyleId: 'ghibli_cherry_blossoms', // NEW: 24 cinematic styles
   language: 'en',
 };
 
@@ -42,7 +50,7 @@ export const useStoryForm = create<StoryFormState>()(
         }),
       nextStep: () =>
         set((state) => ({
-          currentStep: Math.min(state.currentStep + 1, 9),
+          currentStep: Math.min(state.currentStep + 1, TOTAL_STEPS),
         })),
       prevStep: () =>
         set((state) => ({
@@ -51,9 +59,17 @@ export const useStoryForm = create<StoryFormState>()(
     }),
     {
       name: 'foreverstory-form',
+      version: 1,
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        currentStep: state.currentStep,
+        formData: state.formData,
+      }),
     }
   )
 );
+
+export const TOTAL_FORM_STEPS = TOTAL_STEPS;
 
 // Job status store
 interface JobState {

@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Generate unique filename
     const fileExt = file.name.split('.').pop();
     const fileName = `${uuidv4()}.${fileExt}`;
-    const filePath = `photos/${fileName}`;
+    const filePath = fileName; // Bucket is already 'photos', no need for subfolder
 
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();

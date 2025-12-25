@@ -4,11 +4,13 @@
 
 export type StoryStatus =
   | 'queued'
+  | 'uploading_photos'
   | 'processing_script'
   | 'generating_characters'
   | 'creating_scenes'
   | 'generating_video'
-  | 'adding_voice'
+  | 'recording_narration'
+  | 'rendering_frames'
   | 'compiling'
   | 'completed'
   | 'failed';
@@ -20,10 +22,106 @@ export type ArtStyle =
   | 'disney'
   | 'arcane';
 
+// 24 Cinematic Style IDs (matches backend)
+export type CinematicStyleId =
+  // Animation Styles (8)
+  | 'ghibli_cherry_blossoms'
+  | 'howls_castle_night'
+  | 'disney_castle_fireworks'
+  | 'tangled_lanterns'
+  | 'pixar_up_balloons'
+  | 'frozen_aurora'
+  | 'toy_story_clouds'
+  | 'shrek_swamp_sunset'
+  // Vintage/Artistic Styles (4)
+  | 'watercolor_handpainted'
+  | 'vintage_super8'
+  | 'polaroid_memories'
+  | 'rainy_paris'
+  // Cinematic/Sci-Fi Styles (8)
+  | 'star_wars_hyperspace'
+  | 'marvel_cinematic'
+  | 'la_la_land_sunset'
+  | 'harry_potter_great_hall'
+  | 'notebook_rain_kiss'
+  | 'pride_prejudice_fields'
+  | 'interstellar_galaxy'
+  | 'scifi_stardust'
+  // Fantasy Styles (1)
+  | 'steampunk_brass'
+  // Cultural Styles (3)
+  | 'bollywood_dream'
+  | 'kdrama_cherry_blossom'
+  | 'valentine_roses';
+
+export type StyleCategory = 'animation' | 'vintage' | 'cinematic' | 'fantasy' | 'cultural';
+
+export interface CinematicStyleConfig {
+  id: CinematicStyleId;
+  name: string;
+  description: string;
+  category: StyleCategory;
+  emoji: string;
+  gradient: string[];
+  previewColor: string;
+}
+
 export type SupportedLanguage =
   | 'en' | 'hi' | 'es' | 'id' | 'pt'
   | 'ar' | 'ko' | 'tr' | 'bn' | 'vi'
   | 'fr' | 'de';
+
+// Voice Selection Types
+export type VoiceId =
+  | 'rachel' | 'drew' | 'clyde' | 'paul' | 'domi'
+  | 'dave' | 'fin' | 'sarah' | 'antoni' | 'thomas';
+
+export interface VoiceOption {
+  id: VoiceId;
+  name: string;
+  description: string;
+  gender: 'male' | 'female';
+  accent: string;
+  previewUrl: string;
+  elevenLabsId: string;
+}
+
+// Music Selection Types
+export type MusicTrackId =
+  | 'romantic_piano' | 'gentle_strings' | 'dreamy_acoustic'
+  | 'cinematic_love' | 'soft_orchestral';
+
+export interface MusicTrack {
+  id: MusicTrackId;
+  name: string;
+  description: string;
+  duration: string;
+  mood: string;
+  previewUrl: string;
+  fullUrl: string;
+}
+
+// Theme Selection Types
+export type VideoThemeId =
+  | 'sunset_romance' | 'starry_night' | 'cherry_blossom'
+  | 'ocean_waves' | 'golden_autumn' | 'winter_wonderland'
+  | 'tropical_paradise' | 'city_lights';
+
+export interface VideoTheme {
+  id: VideoThemeId;
+  name: string;
+  description: string;
+  previewVideoUrl: string;
+  backgroundVideoUrl: string;
+  thumbnailUrl: string;
+  colorPalette: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    text: string;
+  };
+  particles?: 'sparkles' | 'hearts' | 'petals' | 'snow' | 'fireflies' | 'stars';
+}
 
 export interface StoryFormData {
   // Step 1: Names
@@ -50,8 +148,20 @@ export interface StoryFormData {
   // Step 8: Photos
   photos: string[];
 
-  // Style selection
+  // Step 9: Voice selection
+  voiceId: VoiceId;
+
+  // Step 10: Music selection
+  musicTrackId: MusicTrackId;
+
+  // Step 11: Theme selection (legacy - kept for backwards compatibility)
+  videoThemeId: VideoThemeId;
+
+  // Style selection (art style - legacy)
   artStyle: ArtStyle;
+
+  // Step 11 (NEW): Cinematic style selection (24 styles)
+  cinematicStyleId: CinematicStyleId;
 
   // Language (auto-detected or selected)
   language: SupportedLanguage;
