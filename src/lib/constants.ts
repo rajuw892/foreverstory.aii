@@ -475,9 +475,90 @@ export const ELEVENLABS_VOICES: Record<SupportedLanguage, { voiceId: string; nam
 
 // ========================================
 // Pricing Configuration
+// All tiers are fully animated (no Ken Burns slideshow)
 // ========================================
 
+export type VideoTier = 'basic' | 'premium' | 'deluxe';
+
+export interface TierConfig {
+  id: VideoTier;
+  name: string;
+  duration: number; // in seconds
+  durationDisplay: string;
+  description: string;
+  features: string[];
+  recommended?: boolean;
+}
+
+export const VIDEO_TIERS: Record<VideoTier, TierConfig> = {
+  basic: {
+    id: 'basic',
+    name: 'Basic',
+    duration: 30,
+    durationDisplay: '30 seconds',
+    description: 'Perfect teaser of your love story',
+    features: [
+      '30 seconds fully animated video',
+      'AI-generated character avatars',
+      'Animated backgrounds',
+      'Professional narration',
+      'Style-matched music',
+    ],
+  },
+  premium: {
+    id: 'premium',
+    name: 'Premium',
+    duration: 90,
+    durationDisplay: '1.5 minutes',
+    description: 'Complete love story experience',
+    features: [
+      '1.5 minutes fully animated video',
+      'AI-generated character avatars',
+      'Multiple animated scenes',
+      'Lip-synced talking heads',
+      'Professional narration',
+      'Style-matched music',
+      'All 24 cinematic styles',
+    ],
+    recommended: true,
+  },
+  deluxe: {
+    id: 'deluxe',
+    name: 'Deluxe',
+    duration: 150,
+    durationDisplay: '2.5 minutes',
+    description: 'Ultimate animated love story movie',
+    features: [
+      '2.5 minutes fully animated video',
+      'AI-generated character avatars',
+      'Extended animated scenes',
+      'Lip-synced talking heads',
+      'Professional narration',
+      'Style-matched music',
+      'All 24 cinematic styles',
+      'HD download',
+      'Extended story details',
+    ],
+  },
+};
+
 export const PRICING = {
+  basic: {
+    USD: { amount: 499, display: '$4.99', currency: 'usd' },
+    INR: { amount: 39900, display: '₹399', currency: 'inr' },
+  },
+  premium: {
+    USD: { amount: 999, display: '$9.99', currency: 'usd' },
+    INR: { amount: 79900, display: '₹799', currency: 'inr' },
+  },
+  deluxe: {
+    USD: { amount: 1999, display: '$19.99', currency: 'usd' },
+    INR: { amount: 149900, display: '₹1499', currency: 'inr' },
+  },
+};
+
+// Legacy pricing for backwards compatibility
+export const LEGACY_PRICING = {
   USD: {
     amount: 999,
     display: '$9.99',
@@ -544,8 +625,9 @@ export const RENDER_CONFIG = {
   lowQualityFallback: true,
 };
 
+// Download tiers aligned with video tiers
 export const DOWNLOAD_TIERS = {
-  free: {
+  basic: {
     resolution: '720p',
     width: 1280,
     height: 720,
@@ -554,9 +636,17 @@ export const DOWNLOAD_TIERS = {
     watermarkPosition: 'bottom-right' as const,
     watermarkText: 'ForeverStory.ai',
     format: 'mp4',
+    duration: 30,
   },
   premium: {
-    price: 999, // $9.99
+    resolution: '1080p',
+    width: 1920,
+    height: 1080,
+    watermark: false,
+    format: 'mp4',
+    duration: 90,
+  },
+  deluxe: {
     resolution: '1080p',
     width: 1920,
     height: 1080,
@@ -565,6 +655,7 @@ export const DOWNLOAD_TIERS = {
     includesPhotosZip: true,
     includesEditableScript: true,
     format: 'mp4',
+    duration: 150,
   },
 };
 

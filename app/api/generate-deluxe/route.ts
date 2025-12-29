@@ -1,11 +1,17 @@
 // ========================================
 // Deluxe Video Generation API Route
-// Converts full 150-second video to animated cartoon using Kling AI / Runway Gen-3
+// Creates fully animated short movie with:
+// - AI-generated character avatars that look like the couple
+// - Animated scene backgrounds
+// - Lip-synced talking heads
+// - Professional video composition
 // Only triggered after Deluxe tier payment
 // ========================================
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createAnimatedMovie, MovieConfig } from '@/lib/ai/movie-composer';
+import { CinematicStyleId } from '@/types';
 
 // ========================================
 // Configuration
@@ -605,80 +611,114 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify Deluxe payment
-    if (!story.paid || story.payment_tier !== 'deluxe') {
+    // Verify payment (basic, premium, or deluxe)
+    if (!story.paid) {
       return NextResponse.json(
-        { error: 'Deluxe payment required' },
+        { error: 'Payment required' },
         { status: 402 }
       );
     }
+
+    // Determine duration based on tier
+    const tierDurations: Record<string, number> = {
+      basic: 30,      // 30 seconds
+      premium: 90,    // 1.5 minutes
+      deluxe: 150,    // 2.5 minutes
+    };
+    const targetDuration = tierDurations[story.payment_tier] || 30;
 
     // Check if already generated
     if (story.deluxe_video_url) {
       return NextResponse.json({
         success: true,
         jobId,
-        deluxeVideoUrl: story.deluxe_video_url,
-        message: 'Deluxe video already generated',
+        movieUrl: story.deluxe_video_url,
+        teaserUrl: story.teaser_url,
+        duration: targetDuration,
+        message: 'Animated movie already generated',
       });
     }
 
-    console.log('[Deluxe] Starting generation for job:', jobId);
+    console.log(`[Animated Movie] Starting ${story.payment_tier} tier generation (${targetDuration}s) for job:`, jobId);
 
     await updateJobStatus(
       jobId,
-      'generating_deluxe',
+      'generating_movie',
       5,
-      'Initializing animation generation...'
+      'Starting your animated movie creation...'
     );
 
-    // Determine which service to use
-    const useKling = KLING_CONFIG.apiKey && KLING_CONFIG.apiSecret;
-    const useRunway = RUNWAY_CONFIG.apiKey;
+    // Use the new Movie Composer for fully animated content
+    const movieConfig: MovieConfig = {
+      storyId: jobId,
+      styleId: (story.style_id || 'ghibli_cherry_blossoms') as CinematicStyleId,
+      photoUrls: story.photo_urls || [],
+      storyData: {
+        partner1Name: story.story_data?.partner1Name || story.story_data?.coupleNames?.split(' & ')[0] || 'Partner 1',
+        partner2Name: story.story_data?.partner2Name || story.story_data?.coupleNames?.split(' & ')[1] || 'Partner 2',
+        howMet: story.story_data?.howMet || story.story_data?.howWeMet || '',
+        firstDate: story.story_data?.firstDate || '',
+        funnyMoment: story.story_data?.funniestMoment || story.story_data?.insideJoke || '',
+        loveMoment: story.story_data?.whenIKnew || story.story_data?.iLoveYou || '',
+        adventure: story.story_data?.adventure || '',
+        futureDream: story.story_data?.futureDream || '',
+      },
+      narrationAudioUrl: story.narration_audio_url || '',
+      musicUrl: story.music_url || '',
+      targetDuration,
+    };
 
-    if (!useKling && !useRunway) {
-      throw new Error('No animation service configured. Please set up Kling AI or Runway Gen-3.');
+    // Generate fully animated movie
+    const movieResult = await createAnimatedMovie(
+      movieConfig,
+      async (progress) => {
+        await updateJobStatus(
+          jobId,
+          'generating_movie',
+          Math.min(progress.progress, 95),
+          progress.message
+        );
+      }
+    );
+
+    if (!movieResult.success) {
+      throw new Error(movieResult.error || 'Movie generation failed');
     }
 
-    let deluxeVideoUrl: string;
+    const deluxeVideoUrl = movieResult.movieUrl;
 
-    if (useKling) {
-      console.log('[Deluxe] Using Kling AI');
-      deluxeVideoUrl = await generateWithKlingAI(
-        story.photo_urls || [],
-        story.narration_text || '',
-        story.style_id || 'ghibli_cherry_blossoms',
-        jobId
-      );
-    } else {
-      console.log('[Deluxe] Using Runway Gen-3');
-      deluxeVideoUrl = await generateWithRunway(
-        story.photo_urls || [],
-        story.narration_text || '',
-        story.style_id || 'ghibli_cherry_blossoms',
-        jobId
-      );
-    }
-
-    // Update story with deluxe video
+    // Update story with animated movie data
     await supabase
       .from('stories')
       .update({
-        deluxe_video_url: deluxeVideoUrl,
+        deluxe_video_url: movieResult.movieUrl,
+        teaser_url: movieResult.teaserUrl,
+        character_images: movieResult.components.avatars,
+        scene_images: movieResult.components.scenes,
+        scene_videos: movieResult.components.animatedClips,
         status: 'completed',
         progress: 100,
-        current_step: 'Your deluxe animated video is ready!',
+        current_step: 'Your animated movie is ready!',
         updated_at: new Date().toISOString(),
       })
       .eq('id', jobId);
 
-    console.log('[Deluxe] Generation complete:', deluxeVideoUrl);
+    console.log(`[Animated Movie] Generation complete (${targetDuration}s):`, movieResult.movieUrl);
 
     return NextResponse.json({
       success: true,
       jobId,
-      deluxeVideoUrl,
-      message: 'Deluxe animated video generated successfully!',
+      tier: story.payment_tier,
+      duration: targetDuration,
+      movieUrl: movieResult.movieUrl,
+      teaserUrl: movieResult.teaserUrl,
+      generationTimeMs: movieResult.generationTimeMs,
+      components: {
+        avatars: movieResult.components.avatars.length,
+        scenes: movieResult.components.scenes.length,
+        animatedClips: movieResult.components.animatedClips.length,
+      },
+      message: `Your ${targetDuration}-second animated movie is ready!`,
     });
 
   } catch (error) {

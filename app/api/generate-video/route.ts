@@ -1,6 +1,7 @@
 // ========================================
 // Video Generation API Route
-// Complete pipeline: AI narration -> TTS -> Remotion render
+// Complete pipeline: AI narration -> TTS -> Animated Movie
+// Fully animated videos (no Ken Burns slideshow)
 // Supports all 24 cinematic styles
 // ========================================
 
@@ -8,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { processNarrationForSSML, estimateNarrationDuration } from '@/remotion/ssml-utils';
 import { CinematicStyleId, CINEMATIC_STYLES, getMusicUrlForStyle } from '@/remotion/styles';
+import { createAnimatedMovie, MovieConfig, MovieProgress } from '@/lib/ai/movie-composer';
 import crypto from 'crypto';
 
 // ========================================
@@ -23,15 +25,21 @@ const VIDEO_CONFIG = {
   fps: 30,
   width: 1920,
   height: 1080,
-  durationSeconds: 150, // 2.5 minutes
   teaserSeconds: 30,
-  get durationInFrames() {
-    return this.fps * this.durationSeconds;
-  },
   get teaserFrames() {
     return this.fps * this.teaserSeconds;
   },
 };
+
+// Tier-based duration configuration (all fully animated)
+const TIER_DURATIONS: Record<string, number> = {
+  basic: 30,       // 30 seconds - Basic tier
+  premium: 90,     // 1.5 minutes - Premium tier
+  deluxe: 150,     // 2.5 minutes - Deluxe tier
+};
+
+// Default tier if not specified
+const DEFAULT_TIER = 'basic';
 
 // ========================================
 // Request Types
@@ -55,6 +63,7 @@ interface GenerateVideoRequest {
   photoUrls: string[];
   styleId: CinematicStyleId;
   voiceId?: string;
+  tier?: 'basic' | 'premium' | 'deluxe'; // Determines video duration
 }
 
 // ========================================
@@ -535,11 +544,15 @@ async function generateVoiceover(
 }
 
 // ========================================
-// Remotion Video Rendering
-// Renders the complete 150-second video
+// Animated Movie Generation
+// Creates fully animated video using AI services
 // ========================================
 
-async function renderVideo(
+/**
+ * Generate a fully animated movie using the movie composer pipeline
+ * Replaces the Ken Burns slideshow with actual AI animations
+ */
+async function generateAnimatedVideo(
   props: {
     partner1Name: string;
     partner2Name: string;
@@ -556,271 +569,66 @@ async function renderVideo(
     styleId: CinematicStyleId;
   },
   jobId: string,
+  tier: string,
   onProgress?: (progress: number, step: string) => Promise<void>
 ): Promise<{ fullVideoUrl: string; teaserUrl: string }> {
+  console.log(`[${jobId}] Starting animated movie generation (tier: ${tier})...`);
+
+  // Get duration based on tier
+  const targetDuration = TIER_DURATIONS[tier] || TIER_DURATIONS.basic;
+  console.log(`[${jobId}] Target duration: ${targetDuration}s`);
+
+  await onProgress?.(10, 'Preparing animated movie...');
+
+  // Build movie configuration
+  const movieConfig: MovieConfig = {
+    storyId: jobId,
+    styleId: props.styleId,
+    photoUrls: props.photoUrls,
+    storyData: {
+      partner1Name: props.partner1Name,
+      partner2Name: props.partner2Name,
+      howMet: props.howWeMet,
+      firstDate: props.firstDate,
+      funnyMoment: props.funniestMoment,
+      loveMoment: props.whenIKnew,
+      adventure: props.favoriteThing, // Using favoriteThing as adventure context
+      futureDream: props.futureDream,
+    },
+    narrationAudioUrl: props.narrationAudioUrl,
+    musicUrl: props.musicUrl,
+    targetDuration,
+  };
+
+  // Progress mapping for movie composer phases
+  const progressHandler = async (movieProgress: MovieProgress) => {
+    // Map movie composer progress (0-100) to our progress range (10-95)
+    const mappedProgress = 10 + Math.floor(movieProgress.progress * 0.85);
+    await onProgress?.(mappedProgress, movieProgress.message);
+  };
+
   try {
-    await onProgress?.(10, 'Preparing video composition...');
+    // Create the animated movie
+    const movieResult = await createAnimatedMovie(movieConfig, progressHandler);
 
-    // Check if we should use Remotion Lambda (production) or local rendering
-    const useRemotionLambda = process.env.REMOTION_AWS_ACCESS_KEY_ID && process.env.REMOTION_FUNCTION_NAME;
-
-    if (useRemotionLambda) {
-      // Production: Use Remotion Lambda for serverless rendering
-      const dynamicImport = new Function('moduleName', 'return import(moduleName);');
-      const lambdaClient = await dynamicImport('@remotion/lambda/client').catch((err: unknown) => {
-        console.warn(
-          'Remotion Lambda client not available, falling back to local render. Install @remotion/lambda if you want cloud rendering.',
-          err
-        );
-        return null;
-      });
-
-      if (lambdaClient) {
-        const { renderMediaOnLambda, getRenderProgress } = lambdaClient as typeof import('@remotion/lambda/client');
-
-        await onProgress?.(20, 'Starting cloud render...');
-
-        const { renderId, bucketName } = await renderMediaOnLambda({
-          region: (process.env.REMOTION_AWS_REGION || 'us-east-1') as 'us-east-1',
-          functionName: process.env.REMOTION_FUNCTION_NAME!,
-          serveUrl: process.env.REMOTION_SERVE_URL!,
-          composition: 'ForeverStoryVideo',
-          inputProps: props,
-          codec: 'h264',
-          imageFormat: 'jpeg',
-          maxRetries: 3,
-          privacy: 'public',
-          downloadBehavior: { type: 'download', fileName: `${jobId}.mp4` },
-        });
-
-        // Poll for progress
-        let progress = 0;
-        while (progress < 1) {
-          await new Promise(resolve => setTimeout(resolve, 5000)); // Check every 5s
-
-          const renderProgress = await getRenderProgress({
-            region: (process.env.REMOTION_AWS_REGION || 'us-east-1') as 'us-east-1',
-            functionName: process.env.REMOTION_FUNCTION_NAME!,
-            bucketName,
-            renderId,
-          });
-
-          progress = renderProgress.overallProgress;
-          await onProgress?.(20 + Math.floor(progress * 60), `Rendering video... ${Math.floor(progress * 100)}%`);
-
-          if (renderProgress.fatalErrorEncountered) {
-            throw new Error('Render failed: ' + renderProgress.errors?.[0]?.message);
-          }
-
-          if (renderProgress.done && renderProgress.outputFile) {
-            // Video is ready
-            await onProgress?.(85, 'Video rendered successfully!');
-
-            // Create teaser (first 30 seconds)
-            const teaserUrl = await createTeaser(renderProgress.outputFile, jobId);
-
-            return {
-              fullVideoUrl: renderProgress.outputFile,
-              teaserUrl,
-            };
-          }
-        }
-
-        throw new Error('Render did not complete');
-      }
-      // If lambda client is missing, fall through to local render
+    if (!movieResult.success) {
+      throw new Error(movieResult.error || 'Animated movie creation failed');
     }
 
-    // Development/fallback: Use local Remotion rendering
-    await onProgress?.(20, 'Starting local render...');
+    await onProgress?.(98, 'Finalizing your animated movie...');
 
-    const { bundle } = await import('@remotion/bundler');
-    const { renderMedia, selectComposition } = await import('@remotion/renderer');
-    const path = await import('path');
-    const { unlink } = await import('fs/promises');
+    console.log(`[${jobId}] ✓ Animated movie complete!`);
+    console.log(`[${jobId}] Movie URL: ${movieResult.movieUrl}`);
+    console.log(`[${jobId}] Teaser URL: ${movieResult.teaserUrl}`);
 
-    // Bundle the Remotion project (with caching for faster subsequent renders)
-    const bundleLocation = await bundle({
-      entryPoint: path.resolve('./src/remotion/index.tsx'),
-      webpackOverride: (config) => {
-        // Enable webpack caching for 60% faster subsequent builds
-        config.cache = {
-          type: 'filesystem',
-          cacheDirectory: path.resolve('./.webpack-cache'),
-        };
-        return config;
-      },
-    });
+    return {
+      fullVideoUrl: movieResult.movieUrl,
+      teaserUrl: movieResult.teaserUrl,
+    };
 
-    await onProgress?.(30, 'Selecting composition...');
-
-    // Select the composition
-    const composition = await selectComposition({
-      serveUrl: bundleLocation,
-      id: 'ForeverStoryVideo',
-      inputProps: props,
-    });
-
-    // Output paths
-    const outputDir = path.resolve('./public/videos');
-    const fullVideoPath = path.join(outputDir, `${jobId}.mp4`);
-    const teaserPath = path.join(outputDir, `${jobId}-teaser.mp4`);
-
-    await onProgress?.(40, 'Rendering full video...');
-
-      // Render full video with optimizations
-      await renderMedia({
-        composition,
-        serveUrl: bundleLocation,
-        codec: 'h264',
-        outputLocation: fullVideoPath,
-        inputProps: props,
-        // Enable parallel rendering (uses all CPU cores for 4x faster rendering)
-        concurrency: null, // Auto-detect CPU cores
-        chromiumOptions: {
-          gl: 'angle' as const, // Hardware acceleration
-        },
-        onProgress: async ({ progress }) => {
-          await onProgress?.(40 + Math.floor(progress * 40), `Rendering... ${Math.floor(progress * 100)}%`);
-        },
-      });
-
-      await onProgress?.(82, 'Creating teaser preview...');
-
-      // Render teaser (first 30 seconds) with same optimizations
-      await renderMedia({
-        composition: {
-          ...composition,
-          durationInFrames: VIDEO_CONFIG.teaserFrames,
-        },
-        serveUrl: bundleLocation,
-        codec: 'h264',
-        outputLocation: teaserPath,
-        inputProps: props,
-        concurrency: null, // Parallel rendering
-      });
-
-      await onProgress?.(90, 'Uploading videos...');
-
-      // Upload to Supabase Storage with error handling
-      const fs = await import('fs/promises');
-
-      console.log(`[${jobId}] Reading video files from disk...`);
-      const fullVideoBuffer = await fs.readFile(fullVideoPath);
-      const teaserBuffer = await fs.readFile(teaserPath);
-
-      const fullVideoSize = fullVideoBuffer.length / (1024 * 1024); // MB
-      const teaserSize = teaserBuffer.length / (1024 * 1024); // MB
-      console.log(`[${jobId}] File sizes - Full: ${fullVideoSize.toFixed(2)}MB, Teaser: ${teaserSize.toFixed(2)}MB`);
-
-      await onProgress?.(92, `Uploading full video (${fullVideoSize.toFixed(1)}MB)...`);
-
-      // Upload full video
-      console.log(`[${jobId}] Uploading full video to Supabase...`);
-      const fullUploadResult = await supabase.storage
-        .from('videos')
-        .upload(`full/${jobId}.mp4`, fullVideoBuffer, {
-          contentType: 'video/mp4',
-          upsert: true,
-        });
-
-      if (fullUploadResult.error) {
-        console.error(`[${jobId}] Full video upload FAILED:`, fullUploadResult.error);
-        throw new Error(`Full video upload failed: ${fullUploadResult.error.message}`);
-      }
-      console.log(`[${jobId}] ✓ Full video uploaded successfully`);
-
-      await onProgress?.(96, 'Uploading teaser...');
-
-      // Upload teaser
-      console.log(`[${jobId}] Uploading teaser to Supabase...`);
-      const teaserUploadResult = await supabase.storage
-        .from('videos')
-        .upload(`teasers/${jobId}.mp4`, teaserBuffer, {
-          contentType: 'video/mp4',
-          upsert: true,
-        });
-
-      if (teaserUploadResult.error) {
-        console.error(`[${jobId}] Teaser upload FAILED:`, teaserUploadResult.error);
-        throw new Error(`Teaser upload failed: ${teaserUploadResult.error.message}`);
-      }
-      console.log(`[${jobId}] ✓ Teaser uploaded successfully`);
-
-      await onProgress?.(98, 'Finalizing...');
-
-      // Get public URLs
-      const { data: fullUrlData } = supabase.storage.from('videos').getPublicUrl(`full/${jobId}.mp4`);
-      const { data: teaserUrlData } = supabase.storage.from('videos').getPublicUrl(`teasers/${jobId}.mp4`);
-
-      // Clean up local files
-      await Promise.all([
-        unlink(fullVideoPath).catch(() => {}),
-        unlink(teaserPath).catch(() => {}),
-      ]);
-
-      return {
-        fullVideoUrl: fullUrlData.publicUrl,
-        teaserUrl: teaserUrlData.publicUrl,
-      };
   } catch (error) {
-    console.error('Video rendering failed:', error);
-    throw new Error(`Rendering failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-// ========================================
-// Teaser Creation
-// Creates 30-second preview with "unlock" overlay
-// ========================================
-
-async function createTeaser(fullVideoUrl: string, jobId: string): Promise<string> {
-  try {
-    // Use FFmpeg to extract first 30 seconds and add watermark
-    const { exec } = await import('child_process');
-    const { promisify } = await import('util');
-    const execAsync = promisify(exec);
-    const path = await import('path');
-    const os = await import('os');
-    const { readFile, unlink } = await import('fs/promises');
-
-    const tempDir = os.tmpdir();
-    const teaserPath = path.join(tempDir, `teaser-${jobId}.mp4`);
-
-    // FFmpeg command to:
-    // 1. Extract first 30 seconds
-    // 2. Add "Unlock Full Video" text overlay at the end
-    // 3. Add fade out effect
-    // 4. Use web-optimized H.264 settings for maximum browser compatibility
-    await execAsync(
-      `ffmpeg -i "${fullVideoUrl}" -t 30 -vf "drawtext=text='Unlock Full Video':fontsize=48:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:enable='gte(t,25)',fade=t=out:st=28:d=2" -af "afade=t=out:st=28:d=2" -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -movflags +faststart -preset fast -crf 23 -c:a aac -b:a 128k -ar 48000 "${teaserPath}"`,
-      { timeout: 60000 }
-    );
-
-    // Read and upload teaser
-    const teaserBuffer = await readFile(teaserPath);
-
-    const { error } = await supabase.storage
-      .from('videos')
-      .upload(`teasers/${jobId}.mp4`, teaserBuffer, {
-        contentType: 'video/mp4',
-        upsert: true,
-      });
-
-    if (error) throw error;
-
-    // Clean up
-    await unlink(teaserPath).catch(() => {});
-
-    const { data } = supabase.storage
-      .from('videos')
-      .getPublicUrl(`teasers/${jobId}.mp4`);
-
-    return data.publicUrl;
-  } catch (error) {
-    console.error('Teaser creation failed:', error);
-    // If teaser creation fails, just return a truncated version of full URL
-    return fullVideoUrl + '?teaser=true';
+    console.error(`[${jobId}] Animated movie generation failed:`, error);
+    throw new Error(`Animated movie failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -930,11 +738,17 @@ export async function POST(request: NextRequest) {
     const body: GenerateVideoRequest = await request.json();
     jobId = body.jobId;
 
+    // Get tier from request (defaults to basic)
+    const tier = body.tier || DEFAULT_TIER;
+    const targetDuration = TIER_DURATIONS[tier] || TIER_DURATIONS.basic;
+
     console.log(`[${jobId}] Payload received:`, {
       hasStoryData: !!body.storyData,
       photoCount: body.photoUrls?.length || 0,
       styleId: body.styleId,
       voiceId: body.voiceId,
+      tier,
+      targetDuration: `${targetDuration}s`,
       storyDataFields: body.storyData ? Object.keys(body.storyData) : [],
     });
 
@@ -1018,26 +832,22 @@ export async function POST(request: NextRequest) {
 
     const voiceTime = Date.now() - voiceStartTime;
     console.log(`[${jobId}] ✓ Voice-over generated in ${voiceTime}ms:`, narrationAudioUrl);
-    await updateStatus('recording_narration', 22, 'Voice recorded! Preparing visuals...');
+    await updateStatus('recording_narration', 22, 'Voice recorded! Creating animated movie...');
 
     // ========================================
-    // Step 3: Prepare Photos
-    // ========================================
-    await updateStatus('creating_scenes', 25, 'Preparing your beautiful photos...');
-
-    const photos = expandPhotosIfNeeded(body.photoUrls, 6);
-
-    // ========================================
-    // Step 4: Get Music Track
+    // Step 3: Get Music Track
     // ========================================
     const musicUrl = getMusicUrlForStyle(styleId);
 
     // ========================================
-    // Step 5: Render Video
+    // Step 4: Generate Animated Movie
+    // The movie composer handles: avatar generation, scene creation,
+    // animation, lip sync, and final composition
     // ========================================
-    await updateStatus('rendering_frames', 30, 'Creating your masterpiece...');
+    await updateStatus('creating_scenes', 25, 'Creating your animated masterpiece...');
+    console.log(`[${jobId}] Starting animated movie generation (${tier} tier, ${targetDuration}s)...`);
 
-    const { fullVideoUrl, teaserUrl } = await renderVideo(
+    const { fullVideoUrl, teaserUrl } = await generateAnimatedVideo(
       {
         partner1Name: body.storyData.partner1Name,
         partner2Name: body.storyData.partner2Name,
@@ -1048,40 +858,44 @@ export async function POST(request: NextRequest) {
         whenIKnew: body.storyData.whenIKnew,
         favoriteThing: body.storyData.favoriteThing,
         futureDream: body.storyData.futureDream,
-        photoUrls: photos,
+        photoUrls: body.photoUrls,
         narrationAudioUrl,
         musicUrl,
         styleId,
       },
       jobId,
+      tier,
       async (progress, step) => {
         await updateStatus('rendering_frames', progress, step);
       }
     );
 
     // ========================================
-    // Step 6: Encrypt Full Video URL
+    // Step 5: Encrypt Full Video URL
     // ========================================
     const encryptedFullUrl = encryptVideoUrl(fullVideoUrl, jobId);
 
     // ========================================
-    // Step 7: Save Final Results
+    // Step 6: Save Final Results
     // ========================================
     console.log(`[${jobId}] Saving final results to database...`);
     console.log(`[${jobId}] Full video URL: ${fullVideoUrl}`);
     console.log(`[${jobId}] Teaser URL: ${teaserUrl}`);
+    console.log(`[${jobId}] Tier: ${tier}, Duration: ${targetDuration}s`);
 
     const { error: finalUpdateError } = await supabase
       .from('stories')
       .update({
         status: 'completed',
         progress: 100,
-        current_step: 'Your love story is ready!',
+        current_step: 'Your animated love story is ready!',
         video_url: fullVideoUrl,
         teaser_url: teaserUrl,
         narration_text: narration,
         narration_audio_url: narrationAudioUrl,
         style_id: styleId,
+        tier: tier,
+        video_duration: targetDuration,
         updated_at: new Date().toISOString(),
       })
       .eq('id', jobId);
@@ -1103,7 +917,9 @@ export async function POST(request: NextRequest) {
       encryptedFullUrl,
       narrationText: narration,
       styleName: CINEMATIC_STYLES[styleId].name,
-      estimatedDuration: estimateNarrationDuration(narration),
+      tier,
+      videoDuration: targetDuration,
+      isAnimated: true, // All videos are now fully animated
     });
 
   } catch (error) {

@@ -56,6 +56,19 @@ export type CinematicStyleId =
 
 export type StyleCategory = 'animation' | 'vintage' | 'cinematic' | 'fantasy' | 'cultural';
 
+// Video Tier Types (all tiers are fully animated)
+export type VideoTier = 'basic' | 'premium' | 'deluxe';
+
+export interface VideoTierConfig {
+  id: VideoTier;
+  name: string;
+  duration: number; // in seconds
+  durationDisplay: string;
+  description: string;
+  features: string[];
+  recommended?: boolean;
+}
+
 export interface CinematicStyleConfig {
   id: CinematicStyleId;
   name: string;
@@ -292,4 +305,66 @@ export interface FormStep {
   maxLength: number;
   icon: string;
   voiceEnabled: boolean;
+}
+
+// ========================================
+// Avatar Generation Types
+// ========================================
+
+export interface FaceData {
+  faceId: string;
+  boundingBox: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  confidence: number;
+  landmarks?: {
+    leftEye: [number, number];
+    rightEye: [number, number];
+    nose: [number, number];
+    leftMouth: [number, number];
+    rightMouth: [number, number];
+  };
+  croppedImageUrl: string;
+}
+
+export interface Avatar {
+  id: string;
+  storyId: string;
+  personIndex: number; // 0 = partner1, 1 = partner2
+  sourcePhotoUrl: string;
+  croppedFaceUrl: string;
+  stylizedAvatarUrls: Partial<Record<CinematicStyleId, string>>;
+  referenceEmbedding?: string; // For consistency across scenes
+  createdAt: string;
+}
+
+export interface AvatarGenerationInput {
+  storyId: string;
+  photoUrls: string[];
+  styleId: CinematicStyleId;
+  generateAllStyles?: boolean;
+}
+
+export interface AvatarGenerationResult {
+  success: boolean;
+  avatars: Avatar[];
+  generationTimeMs: number;
+  modelUsed: string;
+  error?: string;
+}
+
+export interface AvatarStylePrompt {
+  styleId: CinematicStyleId;
+  avatarPrompt: string;
+  negativePrompt: string;
+  modelOverride?: string;
+  settings: {
+    identityStrength: number; // 0.0-1.0, how much to preserve original face
+    styleStrength: number; // 0.0-1.0, how much to apply style
+    guidanceScale: number; // Typically 5-15
+    numInferenceSteps: number; // Quality vs speed tradeoff
+  };
 }
