@@ -319,10 +319,12 @@ async function animateWithReplicate(
 
 // ========================================
 // Main Animation Function with Fallback
+// PRIORITY: FREE (Replicate SVD) -> PAID (Kling/Runway)
 // ========================================
 
 /**
  * Animate a single scene with automatic provider fallback
+ * FREE models are prioritized to reduce costs
  */
 export async function animateScene(
   input: AnimationInput,
@@ -336,31 +338,40 @@ export async function animateScene(
   let videoUrl: string;
   let provider: 'kling' | 'runway' | 'replicate';
 
-  // Try providers in order: Kling -> Runway -> Replicate
+  // PRIORITY: FREE (Replicate) -> PAID (Kling/Runway)
+  // Replicate SVD has generous free tier
   try {
-    if (process.env.KLING_API_KEY) {
+    if (process.env.REPLICATE_API_TOKEN) {
+      // PRIMARY (FREE): Replicate Stable Video Diffusion
+      console.log('[Animation] Using Replicate SVD (free tier)...');
+      videoUrl = await animateWithReplicate(imageUrl, prompt, Math.min(duration, 4));
+      provider = 'replicate';
+    } else if (process.env.KLING_API_KEY) {
+      // FALLBACK 1 (PAID): Kling AI
+      console.log('[Animation] Using Kling AI (paid)...');
       videoUrl = await animateWithKling(imageUrl, prompt, duration);
       provider = 'kling';
     } else if (process.env.RUNWAY_API_KEY) {
+      // FALLBACK 2 (PAID): Runway
+      console.log('[Animation] Using Runway (paid)...');
       videoUrl = await animateWithRunway(imageUrl, prompt, duration);
       provider = 'runway';
-    } else if (process.env.REPLICATE_API_TOKEN) {
-      videoUrl = await animateWithReplicate(imageUrl, prompt, Math.min(duration, 4));
-      provider = 'replicate';
     } else {
       throw new Error('No animation API configured');
     }
   } catch (primaryError) {
     console.warn(`[Animation] Primary provider failed:`, primaryError);
 
-    // Try fallbacks
+    // Try paid fallbacks if free failed
     try {
-      if (process.env.RUNWAY_API_KEY) {
+      if (process.env.KLING_API_KEY) {
+        console.log('[Animation] Falling back to Kling AI (paid)...');
+        videoUrl = await animateWithKling(imageUrl, prompt, duration);
+        provider = 'kling';
+      } else if (process.env.RUNWAY_API_KEY) {
+        console.log('[Animation] Falling back to Runway (paid)...');
         videoUrl = await animateWithRunway(imageUrl, prompt, duration);
         provider = 'runway';
-      } else if (process.env.REPLICATE_API_TOKEN) {
-        videoUrl = await animateWithReplicate(imageUrl, prompt, Math.min(duration, 4));
-        provider = 'replicate';
       } else {
         throw new Error('All animation providers failed');
       }
@@ -470,6 +481,7 @@ async function uploadAnimationClip(
 
 /**
  * Animate a single avatar (for talking head / lip sync prep)
+ * PRIORITY: FREE (Replicate) -> PAID (Kling/Runway)
  */
 export async function animateAvatar(
   avatarUrl: string,
@@ -482,12 +494,18 @@ export async function animateAvatar(
   try {
     let videoUrl: string;
 
-    if (process.env.KLING_API_KEY) {
+    // PRIORITY: FREE first
+    if (process.env.REPLICATE_API_TOKEN) {
+      console.log('[Animation] Avatar: Using Replicate SVD (free)...');
+      videoUrl = await animateWithReplicate(avatarUrl, motionPrompt, Math.min(duration, 4));
+    } else if (process.env.KLING_API_KEY) {
+      console.log('[Animation] Avatar: Using Kling AI (paid)...');
       videoUrl = await animateWithKling(avatarUrl, motionPrompt, duration);
     } else if (process.env.RUNWAY_API_KEY) {
+      console.log('[Animation] Avatar: Using Runway (paid)...');
       videoUrl = await animateWithRunway(avatarUrl, motionPrompt, duration);
     } else {
-      videoUrl = await animateWithReplicate(avatarUrl, motionPrompt, Math.min(duration, 4));
+      throw new Error('No animation API configured');
     }
 
     // Upload to storage

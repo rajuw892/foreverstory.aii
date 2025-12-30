@@ -47,16 +47,16 @@ export interface TalkingHeadClip {
 }
 
 // ========================================
-// Model Configuration
+// Model Configuration (ALL FREE-TIER FRIENDLY)
 // ========================================
 
 type ReplicateModel = `${string}/${string}:${string}`;
 
-// SadTalker - Best for realistic talking heads
+// PRIMARY (FREE): SadTalker - Best for realistic talking heads, has free tier
 const SADTALKER_MODEL: ReplicateModel =
   'cjwbw/sadtalker:3aa3dac9353cc4d6bd62a8f95957bd844003b401ca4e4a9b33baa574c549d376';
 
-// Wav2Lip - Good for lip sync on existing videos
+// SECONDARY (FREE): Wav2Lip - Good for lip sync on existing videos, has free tier
 const WAV2LIP_MODEL: ReplicateModel =
   'devxpy/wav2lip:8d65e3f4f4298520e079198b493c25adfc43c058ffec924f2aefc8010ed25eef';
 

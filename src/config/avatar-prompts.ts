@@ -20,17 +20,25 @@ export interface AvatarStyleConfig {
 // Replicate model identifiers
 type ReplicateModel = `${string}/${string}:${string}`;
 
-// Primary model: InstantID for identity-preserving style transfer
+// ========================================
+// FREE-TIER FRIENDLY MODELS (Prioritized)
+// ========================================
+
+// PRIMARY (FREE): Face-to-Many - Great for stylized avatars, has generous free tier
+export const FACE_TO_MANY_MODEL: ReplicateModel =
+  'fofr/face-to-many:a07f252abbbd832009640b27f063ea52d87d7a23a185ca165bec23b5adc8deaf';
+
+// SECONDARY (FREE): Face-to-Sticker - Another free-tier friendly option
+export const FACE_TO_STICKER_MODEL: ReplicateModel =
+  'fofr/face-to-sticker:764d4827ea159608a07cdde8ddf1c6000019627571f37b78ea6a2e73b29fa4e1';
+
+// FALLBACK (PAID): InstantID - Higher quality but more expensive
 export const INSTANT_ID_MODEL: ReplicateModel =
   'zsxkib/instant-id:2a2e8915d4a3c4c42db77bd7a7d04af0e46d07b7e3f22c0475e1de17dc8ad45e';
 
-// Fallback model: IP-Adapter for simpler style transfer
+// FALLBACK 2 (PAID): IP-Adapter - Only use if others fail
 export const IP_ADAPTER_MODEL: ReplicateModel =
   'lucataco/ip-adapter-faceid:37bb90e3b53e6c095cd8bdeeba6e0b8f25a26b9e3389123a79a2c0bcccc86c23';
-
-// Backup model: Face-to-Many for multi-style outputs
-export const FACE_TO_MANY_MODEL: ReplicateModel =
-  'fofr/face-to-many:a07f252abbbd832009640b27f063ea52d87d7a23a185ca165bec23b5adc8deaf';
 
 // ========================================
 // Complete 24-Style Avatar Configuration

@@ -244,38 +244,39 @@ export async function generateAvatar(
     console.log(`[Avatar] Face detected with confidence ${primaryFace.confidence}`);
 
     // Step 2: Generate stylized avatar with fallback chain
+    // PRIORITY: FREE models first (Face-to-Many), then paid models as fallback
     let stylizedAvatarUrl: string;
-    let modelUsed = 'instant-id';
+    let modelUsed = 'face-to-many';
 
     try {
-      // Primary: InstantID
-      stylizedAvatarUrl = await generateAvatarWithInstantID(
+      // PRIMARY (FREE): Face-to-Many - Best free option for stylized avatars
+      stylizedAvatarUrl = await generateAvatarWithFaceToMany(
         primaryFace.croppedImageUrl,
-        styleId,
-        { expression: 'romantic, loving expression' }
+        styleId
       );
-    } catch (instantIdError) {
-      console.warn('[Avatar] InstantID failed, trying IP-Adapter:', instantIdError);
-      modelUsed = 'ip-adapter';
+    } catch (faceToManyError) {
+      console.warn('[Avatar] Face-to-Many failed, trying InstantID (paid):', faceToManyError);
+      modelUsed = 'instant-id';
 
       try {
-        // Fallback 1: IP-Adapter
-        stylizedAvatarUrl = await generateAvatarWithIPAdapter(
+        // FALLBACK 1 (PAID): InstantID - Higher quality but costs more
+        stylizedAvatarUrl = await generateAvatarWithInstantID(
           primaryFace.croppedImageUrl,
-          styleId
+          styleId,
+          { expression: 'romantic, loving expression' }
         );
-      } catch (ipAdapterError) {
-        console.warn('[Avatar] IP-Adapter failed, trying Face-to-Many:', ipAdapterError);
-        modelUsed = 'face-to-many';
+      } catch (instantIdError) {
+        console.warn('[Avatar] InstantID failed, trying IP-Adapter (paid):', instantIdError);
+        modelUsed = 'ip-adapter';
 
         try {
-          // Fallback 2: Face-to-Many
-          stylizedAvatarUrl = await generateAvatarWithFaceToMany(
+          // FALLBACK 2 (PAID): IP-Adapter
+          stylizedAvatarUrl = await generateAvatarWithIPAdapter(
             primaryFace.croppedImageUrl,
             styleId
           );
-        } catch (faceToManyError) {
-          console.warn('[Avatar] All AI models failed, using original photo:', faceToManyError);
+        } catch (ipAdapterError) {
+          console.warn('[Avatar] All AI models failed, using original photo:', ipAdapterError);
           modelUsed = 'original';
           stylizedAvatarUrl = photoUrl;
         }

@@ -29,16 +29,20 @@ const supabase = createClient(
 );
 
 // ========================================
-// Model Configuration
+// Model Configuration (FREE-TIER PRIORITIZED)
 // ========================================
 
 type ReplicateModel = `${string}/${string}:${string}`;
 
-// Primary: SDXL for high-quality scene images
+// PRIMARY (FREE): SDXL Lightning 4-step - Fast, free-tier friendly
+const SDXL_LIGHTNING_MODEL: ReplicateModel =
+  'bytedance/sdxl-lightning-4step:5599ed30703defd1d160a25a63321b4dec97101d98b4674bcc56e41f62f35637';
+
+// SECONDARY (FREE): Standard SDXL - Good quality, has free tier
 const SDXL_MODEL: ReplicateModel =
   'stability-ai/sdxl:7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc';
 
-// Fallback: Stable Diffusion 2.1
+// FALLBACK (FREE): Stable Diffusion 2.1 - Older but reliable
 const SD_21_MODEL: ReplicateModel =
   'stability-ai/stable-diffusion:ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4';
 
@@ -62,6 +66,7 @@ export interface SceneGenerationResult {
 
 /**
  * Generate a single scene image
+ * PRIORITY: FREE models (SDXL Lightning -> SDXL -> SD 2.1)
  */
 export async function generateSceneImage(
   sceneType: SceneType,
@@ -73,53 +78,78 @@ export async function generateSceneImage(
 
   console.log(`[Scene] Generating ${sceneType} scene for style: ${styleId}`);
 
+  // PRIMARY (FREE): SDXL Lightning - Fast and free-tier friendly
   try {
-    const output = await replicate.run(SDXL_MODEL, {
+    console.log('[Scene] Using SDXL Lightning (free, fast)...');
+    const output = await replicate.run(SDXL_LIGHTNING_MODEL, {
       input: {
         prompt,
         negative_prompt: negativePrompt,
-        width: 1344, // 16:9 aspect ratio
-        height: 768,
+        width: 1024,
+        height: 576, // 16:9 aspect ratio
         num_outputs: 1,
-        guidance_scale: 7.5,
-        num_inference_steps: 30,
         scheduler: 'K_EULER',
-        refine: 'expert_ensemble_refiner',
-        high_noise_frac: 0.8,
+        num_inference_steps: 4, // Lightning only needs 4 steps!
       },
     });
 
     if (Array.isArray(output) && output.length > 0) {
-      console.log(`[Scene] Successfully generated ${sceneType} scene`);
+      console.log(`[Scene] SDXL Lightning success for ${sceneType}`);
       return output[0] as string;
     }
 
-    throw new Error('No output from SDXL model');
-  } catch (error) {
-    console.error(`[Scene] SDXL failed, trying SD 2.1 fallback:`, error);
+    throw new Error('No output from SDXL Lightning');
+  } catch (lightningError) {
+    console.warn(`[Scene] SDXL Lightning failed, trying standard SDXL:`, lightningError);
 
-    // Fallback to SD 2.1
+    // SECONDARY (FREE): Standard SDXL
     try {
-      const output = await replicate.run(SD_21_MODEL, {
+      const output = await replicate.run(SDXL_MODEL, {
         input: {
           prompt,
           negative_prompt: negativePrompt,
-          width: 768,
-          height: 512,
+          width: 1344,
+          height: 768,
           num_outputs: 1,
           guidance_scale: 7.5,
-          num_inference_steps: 30,
+          num_inference_steps: 25, // Reduced for cost savings
+          scheduler: 'K_EULER',
         },
       });
 
       if (Array.isArray(output) && output.length > 0) {
+        console.log(`[Scene] SDXL success for ${sceneType}`);
         return output[0] as string;
       }
 
-      throw new Error('No output from SD 2.1 fallback');
-    } catch (fallbackError) {
-      console.error(`[Scene] All models failed for ${sceneType}:`, fallbackError);
-      throw fallbackError;
+      throw new Error('No output from SDXL model');
+    } catch (sdxlError) {
+      console.warn(`[Scene] SDXL failed, trying SD 2.1 fallback:`, sdxlError);
+
+      // FALLBACK (FREE): SD 2.1
+      try {
+        const output = await replicate.run(SD_21_MODEL, {
+          input: {
+            prompt,
+            negative_prompt: negativePrompt,
+            width: 768,
+            height: 512,
+            num_outputs: 1,
+            guidance_scale: 7.5,
+            num_inference_steps: 25,
+          },
+        });
+
+        if (Array.isArray(output) && output.length > 0) {
+          console.log(`[Scene] SD 2.1 success for ${sceneType}`);
+          return output[0] as string;
+        }
+
+        throw new Error('No output from SD 2.1 fallback');
+      } catch (fallbackError) {
+        console.error(`[Scene] All models failed for ${sceneType}:`, fallbackError);
+        throw fallbackError;
+      }
     }
   }
 }
