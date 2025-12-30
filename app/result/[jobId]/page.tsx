@@ -60,13 +60,13 @@ const PRICING_TIERS: PricingTier[] = [
   {
     id: "basic",
     name: "Basic",
-    price: { india: "₹199", global: "$19" },
-    description: "Full HD cinematic video",
+    price: { india: "₹399", global: "$4.99" },
+    description: "30-second animated video",
     features: [
-      "Full 2.5-minute video",
-      "1080p HD quality",
-      "Ken Burns effects",
+      "30 seconds fully animated",
+      "AI-generated character avatars",
       "All 24 cinematic styles",
+      "1080p HD quality",
       "Instant download",
     ],
     icon: <Film className="w-6 h-6" />,
@@ -74,14 +74,14 @@ const PRICING_TIERS: PricingTier[] = [
   {
     id: "premium",
     name: "Premium",
-    price: { india: "₹299", global: "$29" },
-    description: "4K cinematic masterpiece",
+    price: { india: "₹799", global: "$9.99" },
+    description: "1.5-minute animated masterpiece",
     features: [
-      "Everything in Basic",
-      "4K Ultra HD quality",
-      "Custom music selection",
-      "Multiple export formats",
-      "Priority support",
+      "1.5 minutes fully animated",
+      "AI-generated character avatars",
+      "Lip-synced talking scenes",
+      "All 24 cinematic styles",
+      "HD download",
     ],
     icon: <Crown className="w-6 h-6" />,
     popular: true,
@@ -89,17 +89,17 @@ const PRICING_TIERS: PricingTier[] = [
   {
     id: "deluxe",
     name: "Deluxe",
-    price: { india: "₹799", global: "$99" },
-    description: "Full animated cartoon video",
+    price: { india: "₹1499", global: "$19.99" },
+    description: "2.5-minute cinematic experience",
     features: [
-      "Everything in Premium",
-      "REAL animated cartoon",
-      "Your faces animated",
-      "Entire 2.5 minutes animated",
-      "Professional animation quality",
+      "2.5 minutes fully animated",
+      "AI-generated character avatars",
+      "Extended lip-synced scenes",
+      "Premium animation quality",
+      "HD download + extras",
     ],
     icon: <Sparkles className="w-6 h-6" />,
-    deluxeNote: "Animation takes 5-10 minutes to generate",
+    deluxeNote: "Animation takes 10-15 minutes to generate",
   },
 ];
 
@@ -444,10 +444,10 @@ export default function ResultPage() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-white font-semibold text-lg mb-1">
-                              30-second preview
+                              Animated Preview
                             </p>
                             <p className="text-gray-300 text-sm">
-                              Unlock full 2.5-minute video below
+                              Unlock full animated video below
                             </p>
                           </div>
                           <Lock className="w-8 h-8 text-purple-400" />
@@ -654,11 +654,11 @@ export default function ResultPage() {
                 <Download className="w-5 h-5 mr-2 group-hover:translate-y-0.5 transition-transform" />
                 Download Your{" "}
                 {paymentTier === "deluxe"
-                  ? "Animated"
+                  ? "2.5-Minute"
                   : paymentTier === "premium"
-                  ? "4K"
-                  : "HD"}{" "}
-                Video
+                  ? "1.5-Minute"
+                  : "30-Second"}{" "}
+                Animated Video
               </Button>
 
               {/* Deluxe Status */}

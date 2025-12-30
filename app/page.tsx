@@ -61,13 +61,13 @@ const STEPS = [
   {
     icon: Palette,
     title: "Choose Your Style",
-    description: "Pick a breathtaking animation style: Ghibli, Anime, Pixar, Disney, or Arcane.",
+    description: "Pick from 24 stunning animation styles: Ghibli, Anime, Pixar, Disney, Arcane and more.",
     color: "from-purple-500 to-violet-500",
   },
   {
     icon: Film,
     title: "Watch AI Magic",
-    description: "In minutes, your 90-second animated film is ready with narration in your language.",
+    description: "In minutes, your fully animated film is ready with AI avatars and narration in your language.",
     color: "from-blue-500 to-cyan-500",
   },
 ];
@@ -80,11 +80,11 @@ const STYLES = [
   { name: "Arcane", emoji: "🌌", desc: "Edgy, artful storytelling", color: "from-amber-400 to-orange-500" },
 ];
 const FEATURES = [
-  "Free preview with a tiny watermark",
-  "HD + 4K downloads without watermark",
-  "90-second cinematic length",
-  "Choose from 5 romantic styles",
-  "12 language narration support",
+  "Free animated preview",
+  "AI-generated character avatars",
+  "30s to 2.5min fully animated",
+  "24 cinematic animation styles",
+  "Lip-synced talking scenes",
   "Lifetime access to your video",
 ];
 
@@ -249,9 +249,9 @@ export default function LandingPage() {
           <div className="text-center mb-12">
             <span className="font-script text-2xl text-pink-500 mb-2 block">Pick your aesthetic</span>
             <h2 className="font-display text-4xl md:text-5xl font-bold mb-3 dark:text-shadow-glow">
-              5 Romantic <span className="gradient-text">Animation Styles</span>
+              24 Stunning <span className="gradient-text">Animation Styles</span>
             </h2>
-            <p className="text-gray-600 dark:text-gray-300 text-lg">Every style feels bespoke and premium.</p>
+            <p className="text-gray-600 dark:text-gray-300 text-lg">Every style feels bespoke and premium. Here are a few favorites.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -329,19 +329,28 @@ export default function LandingPage() {
             <div className="absolute bottom-0 right-0 w-44 h-44 bg-gradient-to-br from-amber-400/10 to-pink-400/10 rounded-full blur-3xl" />
 
             <div className="relative z-10">
-              <span className="font-script text-2xl text-pink-500 mb-2 block">Simple pricing</span>
+              <span className="font-script text-2xl text-pink-500 mb-2 block">Choose your experience</span>
               <h2 className="font-display text-4xl md:text-5xl font-bold mb-8 dark:text-shadow-glow">
-                One Story, One <span className="gradient-text">Price</span>
+                Fully Animated <span className="gradient-text">Love Stories</span>
               </h2>
 
-              <div className="mb-10">
-                <div className="inline-flex items-baseline gap-2 mb-2">
-                  <span className="font-display text-6xl md:text-7xl font-bold gradient-text">$9.99</span>
-                  <span className="text-gray-500 dark:text-gray-300 text-lg">/ video</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                <div className="p-4 rounded-xl bg-white/50 dark:bg-white/5 border border-purple-200 dark:border-purple-500/20">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Basic</p>
+                  <p className="font-display text-2xl font-bold gradient-text">$4.99</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">30 seconds</p>
                 </div>
-                <p className="text-gray-500 dark:text-gray-300">
-                  or <span className="font-semibold">Rs 1,799</span> in India
-                </p>
+                <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-400 dark:border-purple-500/50 relative">
+                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs bg-purple-500 text-white px-2 py-0.5 rounded-full">Popular</span>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Premium</p>
+                  <p className="font-display text-2xl font-bold gradient-text">$9.99</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">1.5 minutes</p>
+                </div>
+                <div className="p-4 rounded-xl bg-white/50 dark:bg-white/5 border border-purple-200 dark:border-purple-500/20">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Deluxe</p>
+                  <p className="font-display text-2xl font-bold gradient-text">$19.99</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">2.5 minutes</p>
+                </div>
               </div>
 
               <ul className="text-left max-w-md mx-auto space-y-4 mb-10">

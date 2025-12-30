@@ -4,7 +4,12 @@
       "Bash(npm install:*)",
       "Bash(cat:*)",
       "Bash(find:*)",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "Bash(npm run dev:*)",
+      "Bash(ls:*)",
+      "Bash(xargs -I {} bash -c 'echo \"\"=== {} ===\"\" && head -30 {}')",
+      "Bash(grep:*)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []

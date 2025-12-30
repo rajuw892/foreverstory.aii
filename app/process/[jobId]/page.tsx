@@ -11,10 +11,10 @@ import { Heart, Sparkles, Check, Loader2, RefreshCw, Home, X, Image as ImageIcon
 import { Player } from "@lottiefiles/react-lottie-player";
 
 const MAGICAL_MESSAGES = [
-  { text: "Weaving your story with magic...", emoji: "✨" },
+  { text: "Creating your animated characters...", emoji: "✨" },
   { text: "Painting scenes of your love...", emoji: "🎨" },
-  { text: "Adding sparkles to your memories...", emoji: "💫" },
-  { text: "Capturing the essence of your journey...", emoji: "🌟" },
+  { text: "Animating your story moments...", emoji: "💫" },
+  { text: "Adding lip-sync to narration...", emoji: "🗣️" },
   { text: "Creating something beautiful...", emoji: "💕" },
   { text: "Almost there, stay cozy...", emoji: "🌙" },
   { text: "Mixing in the perfect melody...", emoji: "🎵" },
@@ -68,11 +68,11 @@ export default function ProcessPage() {
   }, []);
 
   const tips = [
-    "Your video will be ready in about 3-5 minutes",
-    "We're using AI to create custom animations for your story",
-    "Each scene is uniquely generated based on your answers",
+    "Your animated video will be ready in about 5-10 minutes",
+    "AI is generating character avatars from your photos",
+    "Each scene is fully animated in your chosen style",
     "Feel free to keep this tab open or check back later",
-    "The more photos you uploaded, the more personalized your video",
+    "Lip-synced narration brings your story to life",
   ];
 
   // Calculate estimated time remaining

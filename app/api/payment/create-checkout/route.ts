@@ -11,33 +11,33 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Pricing configuration
+// Pricing configuration (all tiers are fully animated)
 const PRICING = {
   india: {
-    basic: 19900,    // ₹199
-    premium: 29900,  // ₹299
-    deluxe: 79900,   // ₹799
+    basic: 39900,    // ₹399 - 30 seconds
+    premium: 79900,  // ₹799 - 1.5 minutes
+    deluxe: 149900,  // ₹1499 - 2.5 minutes
   },
   global: {
-    basic: 1900,     // $19
-    premium: 2900,   // $29
-    deluxe: 9900,    // $99
+    basic: 499,      // $4.99 - 30 seconds
+    premium: 999,    // $9.99 - 1.5 minutes
+    deluxe: 1999,    // $19.99 - 2.5 minutes
   },
 };
 
-// Tier descriptions
+// Tier descriptions (all fully animated)
 const TIER_DESCRIPTIONS: Record<string, { name: string; description: string }> = {
   basic: {
-    name: 'Basic - Full HD Video',
-    description: 'Full 2.5-minute cinematic HD video with Ken Burns effect',
+    name: 'Basic - 30s Animated',
+    description: '30-second fully animated video with AI character avatars',
   },
   premium: {
-    name: 'Premium - 4K Cinematic',
-    description: 'Cinematic 4K video + all 24 styles + custom music selection',
+    name: 'Premium - 1.5min Animated',
+    description: '1.5-minute fully animated video with lip-synced talking scenes',
   },
   deluxe: {
-    name: 'Deluxe - Animated Cartoon',
-    description: 'Full 2.5-minute REAL animated cartoon video with your faces',
+    name: 'Deluxe - 2.5min Animated',
+    description: '2.5-minute premium animated video with extended scenes',
   },
 };
 
