@@ -11,7 +11,9 @@
       "Bash(grep:*)",
       "Bash(wc:*)",
       "Bash(npm run build:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(chmod:*)",
+      "Bash(./scripts/quick-test.sh:*)"
     ],
     "deny": [],
     "ask": []

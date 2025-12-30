@@ -23,6 +23,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-toast": "^1.2.15",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@remotion/bundler": "^4.0.377",
     "@remotion/cli": "^4.0.377",
     "@remotion/renderer": "^4.0.377",
     "@stripe/stripe-js": "^8.5.2",

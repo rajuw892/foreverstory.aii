@@ -108,8 +108,8 @@ export const MUSIC_TRACKS: Record<MusicTrackId, MusicTrack> = {
     description: 'Gentle piano melody that captures the essence of love',
     duration: '3:24',
     mood: 'Tender & Intimate',
-    previewUrl: '/audio/music/romantic-piano-preview.mp3',
-    fullUrl: '/audio/music/romantic-piano-full.mp3',
+    previewUrl: 'https://cdn.pixabay.com/download/audio/2022/03/10/audio_d1718ab41b.mp3',
+    fullUrl: 'https://cdn.pixabay.com/download/audio/2022/03/10/audio_d1718ab41b.mp3',
   },
   gentle_strings: {
     id: 'gentle_strings',
@@ -117,8 +117,8 @@ export const MUSIC_TRACKS: Record<MusicTrackId, MusicTrack> = {
     description: 'Orchestral strings that swell with emotion',
     duration: '4:12',
     mood: 'Emotional & Sweeping',
-    previewUrl: '/audio/music/gentle-strings-preview.mp3',
-    fullUrl: '/audio/music/gentle-strings-full.mp3',
+    previewUrl: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3',
+    fullUrl: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3',
   },
   dreamy_acoustic: {
     id: 'dreamy_acoustic',
@@ -126,8 +126,8 @@ export const MUSIC_TRACKS: Record<MusicTrackId, MusicTrack> = {
     description: 'Soft acoustic guitar with ambient textures',
     duration: '3:45',
     mood: 'Warm & Nostalgic',
-    previewUrl: '/audio/music/dreamy-acoustic-preview.mp3',
-    fullUrl: '/audio/music/dreamy-acoustic-full.mp3',
+    previewUrl: 'https://cdn.pixabay.com/download/audio/2022/03/24/audio_c9d6c62176.mp3',
+    fullUrl: 'https://cdn.pixabay.com/download/audio/2022/03/24/audio_c9d6c62176.mp3',
   },
   cinematic_love: {
     id: 'cinematic_love',
@@ -135,8 +135,8 @@ export const MUSIC_TRACKS: Record<MusicTrackId, MusicTrack> = {
     description: 'Epic orchestral piece perfect for your movie moment',
     duration: '4:30',
     mood: 'Grand & Romantic',
-    previewUrl: '/audio/music/cinematic-love-preview.mp3',
-    fullUrl: '/audio/music/cinematic-love-full.mp3',
+    previewUrl: 'https://cdn.pixabay.com/download/audio/2022/08/02/audio_884fe5c20c.mp3',
+    fullUrl: 'https://cdn.pixabay.com/download/audio/2022/08/02/audio_884fe5c20c.mp3',
   },
   soft_orchestral: {
     id: 'soft_orchestral',
@@ -144,8 +144,8 @@ export const MUSIC_TRACKS: Record<MusicTrackId, MusicTrack> = {
     description: 'Delicate orchestral arrangement with subtle crescendos',
     duration: '3:58',
     mood: 'Elegant & Graceful',
-    previewUrl: '/audio/music/soft-orchestral-preview.mp3',
-    fullUrl: '/audio/music/soft-orchestral-full.mp3',
+    previewUrl: 'https://cdn.pixabay.com/download/audio/2023/02/28/audio_550758e784.mp3',
+    fullUrl: 'https://cdn.pixabay.com/download/audio/2023/02/28/audio_550758e784.mp3',
   },
 };
 

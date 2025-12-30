@@ -197,6 +197,8 @@ export async function createAnimatedMovie(
       narrationAudioUrl,
       musicUrl,
       targetDuration,
+      styleId,
+      storyData,
     });
 
     // ========================================
@@ -283,13 +285,98 @@ interface ComposeConfig {
   narrationAudioUrl: string;
   musicUrl: string;
   targetDuration: number;
+  styleId: CinematicStyleId;
+  storyData: {
+    partner1Name: string;
+    partner2Name: string;
+    howMet: string;
+    firstDate: string;
+    funnyMoment: string;
+    loveMoment: string;
+    adventure: string;
+    futureDream: string;
+  };
 }
 
 async function composeMovie(config: ComposeConfig): Promise<string> {
-  console.log('[Movie] Composing movie with FFmpeg...');
+  console.log('[Movie] Composing movie using Remotion...');
 
   try {
-    return await composeWithFFmpeg(config);
+    // Use Remotion for composition
+    const { renderMedia, selectComposition } = await import('@remotion/renderer');
+    const { bundle } = await import('@remotion/bundler');
+    const path = await import('path');
+    const { writeFile, readFile, unlink } = await import('fs/promises');
+
+    // Bundle Remotion project
+    const bundleLocation = await bundle({
+      entryPoint: path.resolve('./src/remotion/index.tsx'),
+      webpackOverride: (config) => {
+        config.cache = {
+          type: 'filesystem',
+          cacheDirectory: path.resolve('./.webpack-cache'),
+        };
+        return config;
+      },
+    });
+
+    // Prepare input props for ForeverStoryVideo composition
+    const inputProps = {
+      partner1Name: config.storyData?.partner1Name || 'Partner 1',
+      partner2Name: config.storyData?.partner2Name || 'Partner 2',
+      anniversaryDate: new Date().toISOString().split('T')[0],
+      howWeMet: config.storyData?.howMet || '',
+      firstDate: config.storyData?.firstDate || '',
+      funniestMoment: config.storyData?.funnyMoment || '',
+      whenIKnew: config.storyData?.loveMoment || '',
+      favoriteThing: config.storyData?.adventure || '',
+      futureDream: config.storyData?.futureDream || '',
+      photoUrls: config.animatedClips.map(c => c.videoUrl), // Use animated clips instead of photos
+      narrationAudioUrl: config.narrationAudioUrl,
+      musicUrl: config.musicUrl,
+      styleId: config.styleId || 'ghibli_cherry_blossoms',
+    };
+
+    // Select composition (use ForeverStoryVideo which exists)
+    const composition = await selectComposition({
+      serveUrl: bundleLocation,
+      id: 'ForeverStoryVideo',
+      inputProps,
+    });
+
+    // Output path
+    const outputPath = path.resolve(`./public/videos/movie_${config.storyId}.mp4`);
+
+    // Render
+    await renderMedia({
+      composition,
+      serveUrl: bundleLocation,
+      codec: 'h264',
+      outputLocation: outputPath,
+      inputProps,
+      concurrency: null,
+    });
+
+    // Upload to Supabase
+    const videoBuffer = await readFile(outputPath);
+    const storagePath = `movies/${config.storyId}/final.mp4`;
+
+    const { error } = await supabase.storage
+      .from('videos')
+      .upload(storagePath, videoBuffer, {
+        contentType: 'video/mp4',
+        upsert: true,
+      });
+
+    // Cleanup local file
+    await unlink(outputPath).catch(() => {});
+
+    if (error) {
+      throw new Error(`Upload failed: ${error.message}`);
+    }
+
+    const { data } = supabase.storage.from('videos').getPublicUrl(storagePath);
+    return data.publicUrl;
   } catch (error) {
     console.error('[Movie] Composition failed:', error);
     throw error;
@@ -331,9 +418,35 @@ async function composeWithFFmpeg(config: ComposeConfig): Promise<string> {
     const narrationResponse = await fetch(config.narrationAudioUrl);
     await writeFile(narrationPath, Buffer.from(await narrationResponse.arrayBuffer()));
 
+    let hasMusicFile = false;
     if (config.musicUrl) {
-      const musicResponse = await fetch(config.musicUrl);
-      await writeFile(musicPath, Buffer.from(await musicResponse.arrayBuffer()));
+      try {
+        // Handle both local file paths and remote URLs
+        if (config.musicUrl.startsWith('http://') || config.musicUrl.startsWith('https://')) {
+          // Remote URL - fetch it
+          const musicResponse = await fetch(config.musicUrl);
+          await writeFile(musicPath, Buffer.from(await musicResponse.arrayBuffer()));
+          hasMusicFile = true;
+        } else {
+          // Local file path - copy from public directory
+          const { readFile: readLocalFile, access } = await import('fs/promises');
+          const localPath = path.resolve('./public' + config.musicUrl);
+
+          // Check if file exists
+          try {
+            await access(localPath);
+            const musicBuffer = await readLocalFile(localPath);
+            await writeFile(musicPath, musicBuffer);
+            hasMusicFile = true;
+          } catch (error) {
+            console.warn(`[Movie] Music file not found at ${localPath}, skipping background music`);
+            hasMusicFile = false;
+          }
+        }
+      } catch (error) {
+        console.warn('[Movie] Failed to load music file:', error);
+        hasMusicFile = false;
+      }
     }
 
     // Create concat file
@@ -351,7 +464,7 @@ async function composeWithFFmpeg(config: ComposeConfig): Promise<string> {
     // Mix audio (narration at 80%, music at 20%)
     const outputPath = path.join(tempDir, 'final.mp4');
 
-    if (config.musicUrl) {
+    if (hasMusicFile) {
       await execAsync(
         `ffmpeg -i "${combinedVideoPath}" -i "${narrationPath}" -i "${musicPath}" ` +
         `-filter_complex "[1:a]volume=0.8[a1];[2:a]volume=0.2[a2];[a1][a2]amix=inputs=2:duration=first[aout]" ` +

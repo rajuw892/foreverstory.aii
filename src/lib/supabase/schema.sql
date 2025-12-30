@@ -39,10 +39,15 @@ CREATE TABLE IF NOT EXISTS public.stories (
   voiceover_url TEXT,
   video_url TEXT,
   watermarked_video_url TEXT,
+  teaser_url TEXT,
+  deluxe_video_url TEXT,
   paid BOOLEAN DEFAULT FALSE,
+  tier TEXT,
+  payment_tier TEXT,
   error_message TEXT,
   progress INTEGER DEFAULT 0,
   current_step TEXT,
+  duration_seconds INTEGER DEFAULT 90,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
