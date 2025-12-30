@@ -286,108 +286,14 @@ interface ComposeConfig {
 }
 
 async function composeMovie(config: ComposeConfig): Promise<string> {
-  const { storyId, animatedClips, talkingHeads, narrationAudioUrl, musicUrl, targetDuration } = config;
-
   console.log('[Movie] Composing movie with FFmpeg...');
 
-  // For MVP: Use Remotion for composition if available
-  // Otherwise: Use FFmpeg for basic stitching
-
   try {
-    // Check if Remotion is available
-    const remotionAvailable = await checkRemotionAvailable();
-
-    if (remotionAvailable) {
-      return await composeWithRemotion(config);
-    } else {
-      return await composeWithFFmpeg(config);
-    }
+    return await composeWithFFmpeg(config);
   } catch (error) {
     console.error('[Movie] Composition failed:', error);
     throw error;
   }
-}
-
-async function checkRemotionAvailable(): Promise<boolean> {
-  try {
-    await import('@remotion/renderer');
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Compose movie using Remotion (high quality)
- */
-async function composeWithRemotion(config: ComposeConfig): Promise<string> {
-  console.log('[Movie] Using Remotion for composition...');
-
-  const { renderMedia, selectComposition, bundle } = await import('@remotion/renderer');
-  const path = await import('path');
-  const { writeFile, readFile, unlink } = await import('fs/promises');
-
-  // Bundle Remotion project
-  const bundleLocation = await bundle({
-    entryPoint: path.resolve('./src/remotion/index.tsx'),
-    webpackOverride: (config) => {
-      config.cache = {
-        type: 'filesystem',
-        cacheDirectory: path.resolve('./.webpack-cache'),
-      };
-      return config;
-    },
-  });
-
-  // Prepare input props
-  const inputProps = {
-    animatedClips: config.animatedClips.map(c => c.videoUrl),
-    talkingHeadUrl: config.talkingHeads[0]?.videoUrl || '',
-    narrationAudioUrl: config.narrationAudioUrl,
-    musicUrl: config.musicUrl,
-    isAnimatedMovie: true,
-  };
-
-  // Select composition
-  const composition = await selectComposition({
-    serveUrl: bundleLocation,
-    id: 'AnimatedMovieComposition',
-    inputProps,
-  });
-
-  // Output path
-  const outputPath = path.resolve(`./public/videos/movie_${config.storyId}.mp4`);
-
-  // Render
-  await renderMedia({
-    composition,
-    serveUrl: bundleLocation,
-    codec: 'h264',
-    outputLocation: outputPath,
-    inputProps,
-    concurrency: null,
-  });
-
-  // Upload to Supabase
-  const videoBuffer = await readFile(outputPath);
-  const storagePath = `movies/${config.storyId}/final.mp4`;
-
-  const { error } = await supabase.storage
-    .from('videos')
-    .upload(storagePath, videoBuffer, {
-      contentType: 'video/mp4',
-      upsert: true,
-    });
-
-  // Cleanup local file
-  await unlink(outputPath).catch(() => {});
-
-  if (error) {
-    throw new Error(`Upload failed: ${error.message}`);
-  }
-
-  const { data } = supabase.storage.from('videos').getPublicUrl(storagePath);
-  return data.publicUrl;
 }
 
 /**

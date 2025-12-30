@@ -7,10 +7,65 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { processNarrationForSSML, estimateNarrationDuration } from '@/remotion/ssml-utils';
-import { CinematicStyleId, CINEMATIC_STYLES, getMusicUrlForStyle } from '@/remotion/styles';
+import { CINEMATIC_STYLES, MUSIC_TRACKS } from '@/lib/constants';
+import { CinematicStyleId } from '@/types';
 import { createAnimatedMovie, MovieConfig, MovieProgress } from '@/lib/ai/movie-composer';
 import crypto from 'crypto';
+
+// ========================================
+// SSML Utility Functions (inline)
+// ========================================
+
+function processNarrationForSSML(text: string): string {
+  // Basic SSML processing - escape special characters and add pauses
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\.\s+/g, '. <break time="500ms"/> ')
+    .replace(/,\s+/g, ', <break time="200ms"/> ')
+    .replace(/;\s+/g, '; <break time="300ms"/> ');
+}
+
+function estimateNarrationDuration(text: string): number {
+  // Estimate duration based on word count (avg 150 words per minute)
+  const words = text.split(/\s+/).length;
+  return Math.ceil((words / 150) * 60); // seconds
+}
+
+function getMusicUrlForStyle(styleId: CinematicStyleId): string {
+  // Map style to music track ID
+  const styleToMusic: Record<string, string> = {
+    ghibli_cherry_blossoms: 'gentle_strings',
+    howls_castle_night: 'romantic_piano',
+    disney_castle_fireworks: 'romantic_piano',
+    tangled_lanterns: 'gentle_strings',
+    pixar_up_balloons: 'gentle_strings',
+    frozen_aurora: 'gentle_strings',
+    toy_story_clouds: 'gentle_strings',
+    shrek_swamp_sunset: 'acoustic_love',
+    watercolor_handpainted: 'acoustic_love',
+    vintage_super8: 'romantic_piano',
+    polaroid_memories: 'romantic_piano',
+    rainy_paris: 'romantic_piano',
+    star_wars_hyperspace: 'epic_love',
+    marvel_cinematic: 'epic_love',
+    la_la_land_sunset: 'romantic_piano',
+    harry_potter_great_hall: 'epic_love',
+    notebook_rain_kiss: 'romantic_piano',
+    pride_prejudice_fields: 'gentle_strings',
+    interstellar_galaxy: 'epic_love',
+    scifi_stardust: 'epic_love',
+    steampunk_brass: 'epic_love',
+    bollywood_dream: 'dreamy_ambient',
+    kdrama_cherry_blossom: 'gentle_strings',
+    anime_sakura: 'gentle_strings',
+  };
+
+  const musicKey = styleToMusic[styleId] || 'romantic_piano';
+  const track = MUSIC_TRACKS[musicKey as keyof typeof MUSIC_TRACKS];
+  return track?.fullUrl || '/audio/music/romantic-piano-full.mp3';
+}
 
 // ========================================
 // Configuration
@@ -728,7 +783,7 @@ async function withRetry<T>(
 // ========================================
 
 export async function POST(request: NextRequest) {
-  let jobId: string | null = null;
+  let storyJobId: string = '';
 
   try {
     console.log(`\n========================================`);
@@ -736,7 +791,8 @@ export async function POST(request: NextRequest) {
     console.log(`========================================\n`);
 
     const body: GenerateVideoRequest = await request.json();
-    jobId = body.jobId;
+    const jobId = body.jobId;
+    storyJobId = jobId || '';
 
     // Get tier from request (defaults to basic)
     const tier = body.tier || DEFAULT_TIER;
@@ -923,14 +979,14 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error(`[${jobId}] ❌ Video generation FAILED:`, {
+    console.error(`[${storyJobId}] ❌ Video generation FAILED:`, {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     });
 
     // Update job as failed
-    if (jobId) {
-      console.log(`[${jobId}] Updating database status to 'failed'`);
+    if (storyJobId) {
+      console.log(`[${storyJobId}] Updating database status to 'failed'`);
       await supabase
         .from('stories')
         .update({
@@ -938,7 +994,7 @@ export async function POST(request: NextRequest) {
           error_message: error instanceof Error ? error.message : 'Unknown error occurred',
           updated_at: new Date().toISOString(),
         })
-        .eq('id', jobId);
+        .eq('id', storyJobId);
     }
 
     return NextResponse.json(

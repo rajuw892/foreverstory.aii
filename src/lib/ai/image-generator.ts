@@ -1,5 +1,5 @@
 import Replicate from 'replicate';
-import { ArtStyle, Scene } from '@/types';
+import { ArtStyle, Scene, CinematicStyleId } from '@/types';
 import { STYLE_CONFIGS } from '@/lib/constants';
 
 const replicate = new Replicate({
@@ -9,8 +9,11 @@ const replicate = new Replicate({
 // Model identifier type
 type ReplicateModel = `${string}/${string}:${string}`;
 
+// Style type that accepts both legacy and new style IDs
+type StyleInput = ArtStyle | CinematicStyleId | string;
+
 // Model mappings for different styles
-const STYLE_MODELS: Record<ArtStyle, ReplicateModel> = {
+const STYLE_MODELS: Record<string, ReplicateModel> = {
   ghibli: 'stability-ai/sdxl:7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc',
   anime: 'stability-ai/sdxl:7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc',
   pixar: 'stability-ai/sdxl:7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc',
@@ -18,14 +21,26 @@ const STYLE_MODELS: Record<ArtStyle, ReplicateModel> = {
   arcane: 'stability-ai/sdxl:7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc',
 };
 
+// Map new cinematic style IDs to legacy art styles for backwards compatibility
+function getBaseStyle(style: StyleInput): ArtStyle {
+  if (style.startsWith('ghibli') || style.includes('ghibli')) return 'ghibli';
+  if (style.startsWith('disney') || style.includes('disney') || style.includes('tangled') || style.includes('frozen')) return 'disney';
+  if (style.startsWith('pixar') || style.includes('pixar') || style.includes('toy_story') || style.includes('shrek')) return 'pixar';
+  if (style.includes('anime') || style.includes('kdrama')) return 'anime';
+  if (style.includes('arcane') || style.includes('steampunk') || style.includes('marvel')) return 'arcane';
+  // Default to ghibli for other styles
+  return 'ghibli';
+}
+
 // Face stylization model
 const FACE_STYLIZER_MODEL: ReplicateModel = 'fofr/face-to-sticker:764d4827ea159608a07cdde8ddf1c6000019627571f37b78ea6a2e73b29fa4e1';
 
 export async function stylizePhoto(
   photoUrl: string,
-  style: ArtStyle
+  style: StyleInput
 ): Promise<string> {
-  const styleConfig = STYLE_CONFIGS[style];
+  const baseStyle = getBaseStyle(style);
+  const styleConfig = STYLE_CONFIGS[baseStyle];
 
   try {
     const output = await replicate.run(FACE_STYLIZER_MODEL, {
@@ -52,11 +67,12 @@ export async function stylizePhoto(
 
 export async function generateSceneImage(
   scene: Scene,
-  style: ArtStyle,
+  style: StyleInput,
   characterDescriptions?: string
 ): Promise<string> {
-  const styleConfig = STYLE_CONFIGS[style];
-  const model = STYLE_MODELS[style];
+  const baseStyle = getBaseStyle(style);
+  const styleConfig = STYLE_CONFIGS[baseStyle];
+  const model = STYLE_MODELS[baseStyle];
 
   const fullPrompt = `${styleConfig.promptPrefix} ${scene.visualDescription}${
     characterDescriptions ? `, ${characterDescriptions}` : ''
@@ -89,7 +105,7 @@ export async function generateSceneImage(
 
 export async function stylizeAllPhotos(
   photoUrls: string[],
-  style: ArtStyle
+  style: StyleInput
 ): Promise<string[]> {
   const stylizedPhotos: string[] = [];
 
@@ -108,7 +124,7 @@ export async function stylizeAllPhotos(
 
 export async function generateAllSceneImages(
   scenes: Scene[],
-  style: ArtStyle,
+  style: StyleInput,
   characterDescriptions?: string
 ): Promise<string[]> {
   const sceneImages: string[] = [];

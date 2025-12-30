@@ -9,7 +9,9 @@
       "Bash(ls:*)",
       "Bash(xargs -I {} bash -c 'echo \"\"=== {} ===\"\" && head -30 {}')",
       "Bash(grep:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(npm run build:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

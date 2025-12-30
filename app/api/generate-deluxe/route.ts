@@ -584,11 +584,11 @@ async function addAudioToVideo(videoUrl: string, jobId: string): Promise<string>
 // ========================================
 
 export async function POST(request: NextRequest) {
-  let jobId: string | null = null;
+  let storyJobId: string = '';
 
   try {
     const body: GenerateDeluxeRequest = await request.json();
-    jobId = body.jobId;
+    const jobId = body.jobId;
 
     if (!jobId) {
       return NextResponse.json(
@@ -596,6 +596,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Assign to outer scope variable for error handler access
+    storyJobId = jobId;
 
     // Verify story exists and payment is complete
     const { data: story, error: storyError } = await supabase
@@ -673,7 +676,7 @@ export async function POST(request: NextRequest) {
       movieConfig,
       async (progress) => {
         await updateJobStatus(
-          jobId,
+          storyJobId,
           'generating_movie',
           Math.min(progress.progress, 95),
           progress.message
@@ -724,7 +727,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[Deluxe] Generation failed:', error);
 
-    if (jobId) {
+    if (storyJobId) {
       await supabase
         .from('stories')
         .update({
@@ -732,7 +735,7 @@ export async function POST(request: NextRequest) {
           error_message: error instanceof Error ? error.message : 'Deluxe generation failed',
           updated_at: new Date().toISOString(),
         })
-        .eq('id', jobId);
+        .eq('id', storyJobId);
     }
 
     return NextResponse.json(
