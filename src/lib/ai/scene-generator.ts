@@ -14,6 +14,7 @@ import {
   getSceneMotionPrompt,
   SCENE_BASE_PROMPTS,
 } from '@/config/scene-prompts';
+import { replicateWithRetry, delayBetweenRequests } from './replicate-utils';
 
 // ========================================
 // Initialize Clients
@@ -81,17 +82,27 @@ export async function generateSceneImage(
   // PRIMARY (FREE): SDXL Lightning - Fast and free-tier friendly
   try {
     console.log('[Scene] Using SDXL Lightning (free, fast)...');
-    const output = await replicate.run(SDXL_LIGHTNING_MODEL, {
-      input: {
-        prompt,
-        negative_prompt: negativePrompt,
-        width: 1024,
-        height: 576, // 16:9 aspect ratio
-        num_outputs: 1,
-        scheduler: 'K_EULER',
-        num_inference_steps: 4, // Lightning only needs 4 steps!
+
+    const output = await replicateWithRetry(
+      async () => {
+        return await replicate.run(SDXL_LIGHTNING_MODEL, {
+          input: {
+            prompt,
+            negative_prompt: negativePrompt,
+            width: 1024,
+            height: 576, // 16:9 aspect ratio
+            num_outputs: 1,
+            scheduler: 'K_EULER',
+            num_inference_steps: 4, // Lightning only needs 4 steps!
+          },
+        });
       },
-    });
+      {
+        onRetry: (attempt) => {
+          console.log(`[Scene] SDXL Lightning retry ${attempt} for ${sceneType}...`);
+        },
+      }
+    );
 
     if (Array.isArray(output) && output.length > 0) {
       console.log(`[Scene] SDXL Lightning success for ${sceneType}`);
@@ -224,9 +235,10 @@ export async function generateAllScenes(
       }
     }
 
-    // Small delay between batches
+    // Delay between batches to avoid rate limiting
     if (i + batchSize < sceneSequence.length) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      console.log('[Scene] Waiting 2s before next batch to avoid rate limits...');
+      await delayBetweenRequests(2000);
     }
   }
 

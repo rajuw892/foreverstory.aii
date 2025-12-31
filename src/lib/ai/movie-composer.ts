@@ -125,23 +125,19 @@ export async function createAnimatedMovie(
     console.log(`[Movie] Scenes ready: ${sceneUrls.length}`);
 
     // ========================================
-    // Phase 3: Generate Talking Head (Lip Sync)
+    // Phase 3: SKIP Lip Sync (Testing Mode - Too Expensive)
     // ========================================
     await onProgress?.({
       phase: 'lipsync',
       progress: 30,
-      message: 'Making your characters speak...',
+      message: 'Skipping lip-sync (testing mode)...',
     });
 
-    console.log('[Movie] Phase 3: Generating talking heads...');
-    const talkingHeads = await generateTalkingHeads(
-      avatarUrls,
-      narrationAudioUrl,
-      storyId
-    );
-
-    const talkingHeadUrls = talkingHeads.map(t => t.videoUrl);
-    console.log(`[Movie] Talking heads ready: ${talkingHeadUrls.length}`);
+    console.log('[Movie] Phase 3: SKIPPING lip-sync generation (testing mode)...');
+    // TESTING MODE: Skip expensive lip-sync, use empty array
+    const talkingHeads: TalkingHeadClip[] = [];
+    const talkingHeadUrls: string[] = [];
+    console.log(`[Movie] Lip-sync skipped for cost savings`);
 
     // ========================================
     // Phase 4: Animate Scenes

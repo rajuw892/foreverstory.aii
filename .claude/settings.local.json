@@ -13,7 +13,11 @@
       "Bash(npm run build:*)",
       "Bash(taskkill:*)",
       "Bash(chmod:*)",
-      "Bash(./scripts/quick-test.sh:*)"
+      "Bash(./scripts/quick-test.sh:*)",
+      "Bash(npx tsx:*)",
+      "Bash(timeout 120 tail:*)",
+      "Bash(pkill:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

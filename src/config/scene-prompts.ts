@@ -325,14 +325,10 @@ export function getSceneNegativePrompt(styleId: CinematicStyleId): string {
  * Map story data to scene sequence
  */
 export function getSceneSequence(): SceneType[] {
+  // TESTING MODE: Only 3 scenes for cheap/fast generation
   return [
     'opening',
     'meeting',
-    'first_date',
-    'funny_moment',
-    'love_moment',
-    'adventure',
-    'future_dream',
     'closing',
   ];
 }

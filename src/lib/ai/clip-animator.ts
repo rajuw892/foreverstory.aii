@@ -6,6 +6,7 @@
 import { CinematicStyleId } from '@/types';
 import { createClient } from '@supabase/supabase-js';
 import { SceneType, getSceneMotionPrompt, SCENE_BASE_PROMPTS } from '@/config/scene-prompts';
+import { replicateWithRetry, delayBetweenRequests } from './replicate-utils';
 
 // ========================================
 // Initialize Clients
@@ -291,26 +292,91 @@ async function animateWithReplicate(
   console.log('[Animation] Starting Replicate SVD animation...');
 
   try {
-    const output = await replicate.run(
-      'stability-ai/stable-video-diffusion:3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438',
+    const output = await replicateWithRetry(
+      async () => {
+        return await replicate.run(
+          'stability-ai/stable-video-diffusion:3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438',
+          {
+            input: {
+              input_image: imageUrl,
+              motion_bucket_id: 127,
+              cond_aug: 0.02,
+              decoding_t: 7,
+              fps: 8,
+              frames: duration * 8,
+            },
+          }
+        );
+      },
       {
-        input: {
-          input_image: imageUrl,
-          motion_bucket_id: 127,
-          cond_aug: 0.02,
-          decoding_t: 7,
-          fps: 8,
-          frames: duration * 8,
+        onRetry: (attempt) => {
+          console.log(`[Animation] Replicate SVD retry ${attempt}...`);
         },
       }
     );
 
-    if (output && typeof output === 'string') {
-      console.log('[Animation] Replicate SVD complete!');
-      return output;
+    console.log('[Animation] Replicate SVD output type:', typeof output);
+    console.log('[Animation] Replicate SVD output:', output);
+
+    // Handle different output formats
+    let videoUrl: string | null = null;
+
+    if (typeof output === 'string') {
+      console.log('[Animation] Replicate SVD complete (string)!');
+      videoUrl = output;
+    } else if (Array.isArray(output) && output.length > 0) {
+      console.log('[Animation] Replicate SVD complete (array)!');
+      videoUrl = output[0];
+    } else if (output && typeof output === 'object') {
+      // Check if it's a ReadableStream first - this is the most common case
+      const isStream = output.constructor && output.constructor.name === 'ReadableStream';
+
+      if (isStream) {
+        console.log('[Animation] Replicate SVD returned ReadableStream, consuming...');
+        // For Replicate's streaming API using Web Streams API
+        const reader = (output as any).getReader();
+        const chunks: any[] = [];
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            console.log('[Animation] Stream chunk:', value);
+            chunks.push(value);
+          }
+        } finally {
+          reader.releaseLock();
+        }
+
+        console.log('[Animation] Total chunks:', chunks.length);
+
+        // The stream should yield the URL or the final result
+        if (chunks.length > 0) {
+          const lastChunk = chunks[chunks.length - 1];
+          console.log('[Animation] Last chunk type:', typeof lastChunk);
+          console.log('[Animation] Last chunk:', lastChunk);
+
+          if (typeof lastChunk === 'string') {
+            videoUrl = lastChunk;
+          } else if (lastChunk && typeof lastChunk === 'object' && 'output' in lastChunk) {
+            videoUrl = lastChunk.output;
+          } else if (Array.isArray(lastChunk)) {
+            videoUrl = lastChunk[0];
+          }
+        }
+        console.log('[Animation] Stream consumed, videoUrl:', videoUrl);
+      } else if ('url' in output && typeof (output as any).url === 'string') {
+        // Only use url property if it's actually a string, not a method
+        console.log('[Animation] Replicate SVD complete (object with url property)!');
+        videoUrl = (output as any).url;
+      }
     }
 
-    throw new Error('No output from Replicate SVD');
+    if (!videoUrl) {
+      throw new Error(`No valid output from Replicate SVD. Got: ${JSON.stringify(output)}`);
+    }
+
+    return videoUrl;
   } catch (error) {
     console.error('[Animation] Replicate error:', error);
     throw error;
@@ -419,9 +485,10 @@ export async function animateAllScenes(
       clips.push(clip);
     }
 
-    // Small delay between scenes to respect rate limits
+    // Delay between scenes to respect rate limits and avoid 429 errors
     if (i < inputs.length - 1) {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log('[Animation] Waiting 2s before next scene to avoid rate limits...');
+      await delayBetweenRequests(2000);
     }
   }
 
